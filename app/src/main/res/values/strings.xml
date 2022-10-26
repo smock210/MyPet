@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">LifePet</string>
+    <string name="StartLabel">Дневник питомца</string>
+    <string name="title_activity_main_detail">Detail</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="defolt_тame">Пользователь</string>
+
+    <string name="hello_first_fragment">Введите логин</string>
+    <string name="hello_first_fragment2">Hello 2 first fragment t</string>
+    <string name="hello_second_fragment">Hello second t fragment. Arg: %1$s</string>
+    <string name="title_activity_main_login_form">MainLoginForm</string>
+    <string name="input_pass">Введите пароль</string>
+    <integer name="com_vk_sdk_AppId">51420569</integer>
+</resources>

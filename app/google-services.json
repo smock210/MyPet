@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "778840049718",
+    "project_id": "lifepet-65da0",
+    "storage_bucket": "lifepet-65da0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:778840049718:android:244205de124601b47b7097",
+        "android_client_info": {
+          "package_name": "com.smock210.mypet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "778840049718-sek5c2rvd6mfccfj61gh9img4i22spdq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.smock210.mypet",
+            "certificate_hash": "333cd402c3c8962501359b28bc9cb92cc0e2de75"
+          }
+        },
+        {
+          "client_id": "778840049718-m938r3ubp27je99ci6j3qdgr0nkpbrqh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAM7qFXROB82HfZNmhRU_-0koCQN7xiqHo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "778840049718-m938r3ubp27je99ci6j3qdgr0nkpbrqh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
