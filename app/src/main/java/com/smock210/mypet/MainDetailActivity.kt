@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.smock210.mypet.classes.PetPhotoAdapter
 import com.smock210.mypet.health.HealthActivity
 import com.smock210.mypet.requests.VKWallPostCommand
+import com.smock210.mypet.utils.ImageStorage
 import com.smock210.mypet.video.VideoRecorderHelper
 import com.squareup.picasso.Picasso
 import com.smock210.mypet.viewmodel.PetViewModel
@@ -41,7 +42,10 @@ class MainDetailActivity : AppCompatActivity() {
         ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
-            viewModel.addPhoto(petId, uri.toString())
+            // Копируем фото в приватное хранилище: временный content:// URI
+            // перестаёт открываться после перезапуска приложения
+            val path = ImageStorage.persist(this, uri.toString())
+            viewModel.addPhoto(petId, path)
         }
     }
 
@@ -123,13 +127,21 @@ class MainDetailActivity : AppCompatActivity() {
         val petName = viewModel.editedPet.value?.name ?: ""
         val message = getString(R.string.vk_post_message, petName)
 
+        // Фото хранится путём к файлу в приватном хранилище — для загрузки
+        // в VK нужен file:// Uri
+        val uploadUri = if (photoUri.startsWith("/")) {
+            Uri.fromFile(java.io.File(photoUri))
+        } else {
+            Uri.parse(photoUri)
+        }
+
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     com.vk.api.sdk.VK.executeSync(
                         VKWallPostCommand(
                             message = message,
-                            photos = listOf(Uri.parse(photoUri))
+                            photos = listOf(uploadUri)
                         )
                     )
                 }

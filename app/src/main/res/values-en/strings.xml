@@ -192,4 +192,7 @@
     <string name="vk_diag_remote_android_ok">Android settings are filled in:</string>
     <string name="vk_diag_remote_android_missing">⚠️ Android settings are NOT filled in — this causes “application is blocked”</string>
     <string name="vk_diag_remote_error">VK console check: %1$s</string>
+
+    <string name="pet_photo">Pet photo</string>
+    <string name="user_photo">User photo</string>
 </resources>

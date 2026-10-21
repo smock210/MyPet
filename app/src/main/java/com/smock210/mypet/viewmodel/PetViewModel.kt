@@ -10,6 +10,7 @@ import com.smock210.mypet.sqlClass.PetPhoto
 import com.smock210.mypet.sqlClass.Vaccination
 import com.smock210.mypet.sqlClass.VetVisit
 import com.smock210.mypet.sqlClass.WeightRecord
+import com.smock210.mypet.utils.ImageStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +34,33 @@ class PetViewModel(application: Application) : AndroidViewModel(application) {
 
     val pets: StateFlow<List<PetData>> = dao.getAllFlow()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    init {
+        migrateLegacyPhotoUris()
+    }
+
+    /**
+     * Переносит ранее сохранённые content:// URI в приватное хранилище:
+     * временный доступ к таким ссылкам теряется, и фото перестаёт открываться.
+     */
+    private fun migrateLegacyPhotoUris() {
+        viewModelScope.launch(Dispatchers.IO) {
+            dao.getAll()
+                .filter { it.photoUri?.startsWith("content://") == true }
+                .forEach { pet ->
+                    val old = pet.photoUri ?: return@forEach
+                    val path = ImageStorage.persist(getApplication(), old)
+                    if (path != old) {
+                        dao.update(pet.copy(photoUri = path))
+                        photoDao.getPhotosForPet(pet.id)
+                            .filter { it.photoUri.startsWith("content://") }
+                            .forEach { photo ->
+                                photoDao.update(photo.copy(photoUri = ImageStorage.persist(getApplication(), photo.photoUri)))
+                            }
+                    }
+                }
+        }
+    }
 
     // ========= СКОПИРОВАННЫЙ ПИТОМЕЦ ДЛЯ ДЕТАЛЬНЫХ ЭКРАНОВ =========
 

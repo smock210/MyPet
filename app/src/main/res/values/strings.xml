@@ -192,4 +192,7 @@
     <string name="vk_diag_remote_android_ok">Android-настройки заполнены:</string>
     <string name="vk_diag_remote_android_missing">⚠️ Android-настройки НЕ заполнены — именно это вызывает «application is blocked»</string>
     <string name="vk_diag_remote_error">Проверка кабинета VK: %1$s</string>
+
+    <string name="pet_photo">Фото питомца</string>
+    <string name="user_photo">Фото пользователя</string>
 </resources>

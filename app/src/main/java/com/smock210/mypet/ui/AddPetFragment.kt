@@ -18,6 +18,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.smock210.mypet.R
 import com.smock210.mypet.sqlClass.PetData
+import com.smock210.mypet.utils.ImageStorage
 import com.smock210.mypet.viewmodel.PetViewModel
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
@@ -128,6 +129,12 @@ class AddPetFragment : Fragment() {
         val weightKg = weightStr.toDoubleOrNull() ?: 0.0
         val detail = view.findViewById<TextInputEditText>(R.id.et_pet_detail).text.toString().trim()
 
+        // Фото сохраняем копией в приватном хранилище: временный content:// URI
+        // перестаёт открываться после перезапуска приложения
+        val photoPath = selectedPhotoUri?.let {
+            ImageStorage.persist(requireContext(), it.toString())
+        }
+
         if (editingPetId != 0L) {
             val current = viewModel.editedPet.value ?: return
             viewModel.updatePet(
@@ -138,14 +145,14 @@ class AddPetFragment : Fragment() {
                     ageYears = ageYears,
                     weightKg = weightKg,
                     smallDetail = detail.ifBlank { null },
-                    photoUri = selectedPhotoUri?.toString() ?: current.photoUri
+                    photoUri = photoPath ?: current.photoUri
                 )
             )
             Snackbar.make(view, R.string.pet_updated, Snackbar.LENGTH_SHORT).show()
         } else {
             viewModel.addPet(
                 name, species, breed, ageYears, weightKg,
-                detail.ifBlank { null }, selectedPhotoUri?.toString()
+                detail.ifBlank { null }, photoPath
             )
             Snackbar.make(view, R.string.pet_saved, Snackbar.LENGTH_SHORT).show()
         }

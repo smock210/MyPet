@@ -1,6 +1,5 @@
 package com.smock210.mypet.classes
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +10,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.smock210.mypet.R
 import com.smock210.mypet.sqlClass.PetData
+import com.squareup.picasso.Picasso
 
 class NewPetAdapt(
     private val listener: OnItemClickListener,
@@ -26,7 +26,19 @@ class NewPetAdapt(
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         val pet = getItem(position)
         holder.largeTextView.text = pet.name ?: "—"
-        holder.smallImageView.setImageResource(R.drawable.ic_launcher_foreground)
+
+        // Фото питомца показываем круглым (CircleImageView), без фото — заглушка «лапка»
+        val photoUri = pet.photoUri
+        if (photoUri.isNullOrBlank()) {
+            holder.smallImageView.setImageResource(R.drawable.ic_pet_placeholder)
+        } else {
+            Picasso.get()
+                .load(photoUri)
+                .placeholder(R.drawable.ic_pet_placeholder)
+                .error(R.drawable.ic_pet_placeholder)
+                .centerCrop()
+                .into(holder.smallImageView)
+        }
     }
 
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
@@ -42,7 +54,6 @@ class NewPetAdapt(
         override fun onClick(v: View?) {
             val position = bindingAdapterPosition
             if (position != RecyclerView.NO_POSITION) {
-                v?.setBackgroundColor(Color.parseColor("#000000"))
                 listener.onItemClick(position)
             }
         }
@@ -50,7 +61,6 @@ class NewPetAdapt(
         override fun onLongClick(v: View?): Boolean {
             val position = bindingAdapterPosition
             if (position != RecyclerView.NO_POSITION) {
-                v?.setBackgroundColor(Color.parseColor("#545454"))
                 listener2.OnLongClickListener(position)
             }
             return true
