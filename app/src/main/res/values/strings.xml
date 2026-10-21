@@ -173,4 +173,16 @@
     </string-array>
     <string name="kg_unit">кг</string>
     <string name="feeding_result">🍽️ Порция: %1$s г/приём (2 раза/день)\n📊 Дневная порция: %2$s г\n🐕 По возрасту: %3$s г\n🔥 Калории: %4$s ккал</string>
+
+    <string name="vk_diagnostics_title">Диагностика авторизации VK</string>
+    <string name="vk_diag_app_id">App ID: %1$s</string>
+    <string name="vk_diag_package">Пакет: %1$s</string>
+    <string name="vk_diag_fingerprints">SHA-1 отпечатки подписи:</string>
+    <string name="vk_diag_no_fingerprint">Отпечаток не найден</string>
+    <string name="vk_diag_status">Статус: %1$s</string>
+    <string name="vk_diag_logged_in">выполнен вход</string>
+    <string name="vk_diag_not_logged_in">не выполнен вход</string>
+    <string name="vk_diag_hint">В настройках приложения VK (vk.com/apps?act=manage) укажите: тип Standalone, имя пакета как «Имя пакета для Android», SHA-1 отпечаток выше — в «Сертификат для Android», и activity com.smock210.mypet.MainActivity. Если приложение в режиме разработки — добавьте тестовый аккаунт в «Разработчики».</string>
+    <string name="vk_diagnostics_title_menu">Диагностика VK</string>
+    <string name="vk_login_failed_reason">Не удалось войти через VK: %1$s</string>
 </resources>

@@ -36,6 +36,10 @@
         android:title="@string/maps_title"
         app:showAsAction="never" />
     <item
+        android:id="@+id/menu_vk_diagnostics"
+        android:title="@string/vk_diagnostics_title_menu"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/menu_toggle_theme"
         android:title="@string/toggle_theme"
         app:showAsAction="never" />

@@ -2,6 +2,7 @@ package com.smock210.mypet
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -50,8 +51,19 @@ class MainActivity : AppCompatActivity(),
     private val vkAuthLauncher = VK.login(this) { result ->
         when (result) {
             is VKAuthenticationResult.Success -> loadVkProfile()
-            is VKAuthenticationResult.Failed ->
-                Toast.makeText(this, R.string.vk_login_failed, Toast.LENGTH_SHORT).show()
+            is VKAuthenticationResult.Failed -> {
+                // Показываем реальную причину от VK (например, «application is blocked»),
+                // иначе пользователь не поймёт, что не так с приложением в кабинете VK.
+                val reason = result.exception.authError
+                    ?: result.exception.message
+                    ?: getString(R.string.vk_login_failed)
+                Log.w("VK", "Authorization failed: ${result.exception.authError} / ${result.exception.message}")
+                Toast.makeText(
+                    this,
+                    getString(R.string.vk_login_failed_reason, reason),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 
@@ -239,6 +251,12 @@ class MainActivity : AppCompatActivity(),
                 startActivity(
                     Intent(this, ToolsActivity::class.java)
                         .putExtra(ToolsActivity.EXTRA_TOOL, ToolsActivity.TOOL_MAPS)
+                )
+            }
+            R.id.menu_vk_diagnostics -> {
+                startActivity(
+                    Intent(this, ToolsActivity::class.java)
+                        .putExtra(ToolsActivity.EXTRA_TOOL, ToolsActivity.TOOL_VK_DIAGNOSTICS)
                 )
             }
             R.id.menu_toggle_theme -> cycleTheme()

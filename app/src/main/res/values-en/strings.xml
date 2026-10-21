@@ -173,4 +173,16 @@
     </string-array>
     <string name="kg_unit">kg</string>
     <string name="feeding_result">🍽️ Portion: %1$s g/meal (2 meals/day)\n📊 Daily portion: %2$s g\n🐕 By age: %3$s g\n🔥 Calories: %4$s kcal</string>
+
+    <string name="vk_diagnostics_title">VK authorization diagnostics</string>
+    <string name="vk_diag_app_id">App ID: %1$s</string>
+    <string name="vk_diag_package">Package: %1$s</string>
+    <string name="vk_diag_fingerprints">Signing certificate SHA-1:</string>
+    <string name="vk_diag_no_fingerprint">Fingerprint not found</string>
+    <string name="vk_diag_status">Status: %1$s</string>
+    <string name="vk_diag_logged_in">logged in</string>
+    <string name="vk_diag_not_logged_in">not logged in</string>
+    <string name="vk_diag_hint">In the VK app settings (vk.com/apps?act=manage) set: Standalone type, package name as “Android package name”, the SHA-1 above as “Android certificate fingerprint”, and activity com.smock210.mypet.MainActivity. If the app is in development mode, add the test account as a developer.</string>
+    <string name="vk_diagnostics_title_menu">VK diagnostics</string>
+    <string name="vk_login_failed_reason">VK login failed: %1$s</string>
 </resources>

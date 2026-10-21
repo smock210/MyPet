@@ -19,6 +19,7 @@ class ToolsActivity : AppCompatActivity() {
         const val TOOL_EXPORT = "export"
         const val TOOL_HEALTH_SCALE = "health_scale"
         const val TOOL_MAPS = "maps"
+        const val TOOL_VK_DIAGNOSTICS = "vk_diagnostics"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,6 +31,7 @@ class ToolsActivity : AppCompatActivity() {
                 TOOL_EXPORT -> ExportDataFragment()
                 TOOL_HEALTH_SCALE -> HealthScaleFragment()
                 TOOL_MAPS -> com.smock210.mypet.maps.MapsFragment()
+                TOOL_VK_DIAGNOSTICS -> com.smock210.mypet.ui.VkDiagnosticsFragment()
                 else -> FeedingCalculatorFragment()
             }
             supportFragmentManager.beginTransaction()

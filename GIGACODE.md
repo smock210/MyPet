@@ -25,7 +25,7 @@
 | `AddPetActivity` | Хост `ui.AddPetFragment` — форма добавления **и редактирования** питомца (`EXTRA_PET_ID`). |
 | `health.HealthActivity` | TabLayout + ViewPager: `VaccinationFragment`, `VetVisitFragment`. |
 | `VkApplication` | Custom `Application`, обрабатывает истечение VK-токена, применяет Material 3 Dynamic Color. Зарегистрирован в манифесте. |
-| `ToolsActivity` | Универсальный контейнер экранов: калькулятор кормления, экспорт данных, оценка состояния, карта клиник. |
+| `ToolsActivity` | Универсальный контейнер экранов: калькулятор кормления, экспорт данных, оценка состояния, карта клиник, диагностика VK. |
 | `NewPetAdapt` | Адаптер RecyclerView списка питомцев (`ListAdapter` + `DiffUtil`). |
 | `sqlClass/*` | Room-слой: `AppDatabase` (v6, миграции 1→6), сущности `PetData`, `Vaccination`, `VetVisit`, `PetPhoto`, `WeightRecord`; DAO `EmployeeDao` (insert возвращает id), `HealthDao`, `PetPhotoDao`, `WeightDao`. Есть Flow-варианты запросов. |
 | `viewmodel/PetViewModel` | AndroidViewModel со StateFlow (`pets`, `vaccinations`, `visits`, `photos`, `weights`), реактивно из Room; снапшот для Undo-удаления. |
@@ -124,6 +124,7 @@ MyPet-master/
 11. ~~`MainLoginForm`/`RegistrActivity` — мёртвые точки входа~~ — оба удалены; `menu_toggle_theme` теперь реализован (тема из DataStore).
 12. **Firebase**: зависимости отключены (плагина `google-services` в проекте нет, вход через VK). `google-services.json` остался в `app/` — можно удалить.
 13. `maps/ClinicRepository` возвращает mock-данные клиник (демо), но их адреса геокодируются через `Geocoder` — реальный поиск по Places API требует ключа Google.
+15. **Авторизация VK**: ошибка «Invalid request: application is blocked» приходит от сервера VK — приложение 51420569 должно быть опубликовано (или тестовый аккаунт добавлен в разработчики), а в его настройках Android должны совпадать пакет `com.smock210.mypet` и SHA-1 подписи. Точные значения показывает экран «Диагностика VK».
 14. ~~Тест миграции Room не написан~~ — **исправлено**: `MigrationTest.kt` (3 теста) прогоняет `MIGRATION_4_5` и `MIGRATION_5_6` вручную через `SupportSQLiteOpenHelper`, без `exportSchema = true`.
 
 ---
