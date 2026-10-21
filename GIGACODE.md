@@ -49,7 +49,7 @@
 | ViewPager2 | `1.1.0` (вкладки «Здоровье») |
 | Room | `2.6.1` |
 | Picasso | `2.8` |
-| VK SDK | `4.1.0` (вход через VK, scope PHOTOS/EMAIL/PHONE) |
+| VK SDK | `4.1.0` (вход через VK, App ID 54841026 «Жизнь петомца», scope PHOTOS/EMAIL/PHONE) |
 | Firebase Auth | отключён (выбран VK; класс FirebaseAuthHelper удалён) |
 | DataStore / security-crypto / Biometric | `1.1.6` / `1.1.0-alpha06` / `1.2.0-alpha05` |
 | Корутины (+ play-services) | `1.9.0` / `1.9.0` |

@@ -185,4 +185,11 @@
     <string name="vk_diag_hint">In the VK app settings (vk.com/apps?act=manage) set: Standalone type, package name as “Android package name”, the SHA-1 above as “Android certificate fingerprint”, and activity com.smock210.mypet.MainActivity. If the app is in development mode, add the test account as a developer.</string>
     <string name="vk_diagnostics_title_menu">VK diagnostics</string>
     <string name="vk_login_failed_reason">VK login failed: %1$s</string>
+
+    <string name="vk_diag_remote_title">VK app settings:</string>
+    <string name="vk_diag_remote_type">Type: %1$s</string>
+    <string name="vk_diag_remote_status">State: %1$s</string>
+    <string name="vk_diag_remote_android_ok">Android settings are filled in:</string>
+    <string name="vk_diag_remote_android_missing">⚠️ Android settings are NOT filled in — this causes “application is blocked”</string>
+    <string name="vk_diag_remote_error">VK console check: %1$s</string>
 </resources>

@@ -5,7 +5,7 @@
     <string name="defolt_тame">Пользователь</string>
 
     <string name="input_pass">Введите пароль</string>
-    <integer name="com_vk_sdk_AppId">51420569</integer>
+    <integer name="com_vk_sdk_AppId">54841026</integer>
     <string name="add_pet">Добавить питомца</string>
     <string name="save">Сохранить</string>
     <string name="cancel">Отмена</string>
@@ -185,4 +185,11 @@
     <string name="vk_diag_hint">В настройках приложения VK (vk.com/apps?act=manage) укажите: тип Standalone, имя пакета как «Имя пакета для Android», SHA-1 отпечаток выше — в «Сертификат для Android», и activity com.smock210.mypet.MainActivity. Если приложение в режиме разработки — добавьте тестовый аккаунт в «Разработчики».</string>
     <string name="vk_diagnostics_title_menu">Диагностика VK</string>
     <string name="vk_login_failed_reason">Не удалось войти через VK: %1$s</string>
+
+    <string name="vk_diag_remote_title">Настройки приложения в кабинете VK:</string>
+    <string name="vk_diag_remote_type">Тип: %1$s</string>
+    <string name="vk_diag_remote_status">Состояние: %1$s</string>
+    <string name="vk_diag_remote_android_ok">Android-настройки заполнены:</string>
+    <string name="vk_diag_remote_android_missing">⚠️ Android-настройки НЕ заполнены — именно это вызывает «application is blocked»</string>
+    <string name="vk_diag_remote_error">Проверка кабинета VK: %1$s</string>
 </resources>

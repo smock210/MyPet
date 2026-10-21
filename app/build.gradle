@@ -4,12 +4,24 @@ plugins {
     id 'kotlin-kapt'
 }
 
+// Секреты приложения VK (сервисный ключ) берём из local.properties —
+// файл не коммитится, поэтому ключ не попадает в репозиторий.
+// ВНИМАНИЕ: значение попадает в APK и может быть извлечено из него,
+// для публичного приложения запросы с сервисным ключом лучше делать через сервер.
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream { localProps.load(it) }
+}
+def vkServiceKey = localProps.getProperty('VK_SERVICE_KEY', '')
+
 android {
     compileSdk 35
     namespace "com.smock210.mypet"
 
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 
     defaultConfig {
@@ -24,9 +36,16 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Сервисный ключ VK нужен только для диагностики настроек приложения
+            // в кабинете VK. В release-сборку он НЕ попадает: сервисный ключ —
+            // серверный секрет, его нельзя держать в публичном APK.
+            buildConfigField "String", "VK_SERVICE_KEY", "\"${vkServiceKey}\""
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "VK_SERVICE_KEY", "\"\""
         }
     }
 
