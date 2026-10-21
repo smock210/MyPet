@@ -2,17 +2,175 @@
     <string name="app_name">LifePet</string>
     <string name="StartLabel">Дневник питомца</string>
     <string name="title_activity_main_detail">Detail</string>
-    <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
     <string name="defolt_тame">Пользователь</string>
 
-    <string name="hello_first_fragment">Введите логин</string>
-    <string name="hello_first_fragment2">Hello 2 first fragment t</string>
-    <string name="hello_second_fragment">Hello second t fragment. Arg: %1$s</string>
-    <string name="title_activity_main_login_form">MainLoginForm</string>
     <string name="input_pass">Введите пароль</string>
     <integer name="com_vk_sdk_AppId">51420569</integer>
+    <string name="add_pet">Добавить питомца</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="pet_saved">Питомец сохранён</string>
+    <string name="pet_updated">Данные питомца обновлены</string>
+    <string name="edit_pet">Редактирование питомца</string>
+    <string name="edit">Редактировать</string>
+    <string name="no_pets">Пока нет питомцев.\nДобавьте первого через меню «⋯» → «Добавить питомца»</string>
+    <string name="delete">Удалить</string>
+    <string name="update">Обновить</string>
+    <string name="no_records">Записей пока нет</string>
+    <string name="add_vaccination_title">Прививка</string>
+    <string name="add_visit_title">Приём у ветеринара</string>
+    <string name="vaccine_name_hint">Название прививки</string>
+    <string name="date_hint">Дата</string>
+    <string name="time_hint">Время</string>
+    <string name="clinic_hint">Название клиники</string>
+    <string name="doctor_hint">Врач</string>
+    <string name="diagnosis_hint">Диагноз</string>
+    <string name="delete_record_title">Удалить запись?</string>
+    <string name="record_added">Запись добавлена</string>
+    <string name="record_updated">Запись обновлена</string>
+    <string name="fill_clinic_date">Заполните клинику и дату</string>
+    <string name="gallery_photo">Фото питомца</string>
+    <string name="add_photo">Добавить фото</string>
+    <string name="photo_deleted">Фото удалено</string>
+    <string name="photo_is_primary">Основное фото обновлено</string>
+    <string name="photos_empty">Фото пока не добавлены</string>
+    <string name="record_video">Записать видео</string>
+    <string name="video_saved">Видео сохранено в галерею</string>
+    <string name="video_failed">Не удалось записать видео</string>
+    <string name="video_open">Открыть видео</string>
+    <string name="maps_title">Ветклиники на карте</string>
+    <string name="maps_enter_address">Введите адрес или название</string>
+    <string name="maps_not_found">Ничего не найдено по запросу</string>
+    <string name="maps_not_ready">Карта ещё не готова, повторите</string>
+    <string name="feeding_calc_title">Калькулятор кормления</string>
+    <string name="export_title">Экспорт данных</string>
+    <string name="export_success">✅ Сохранено: %1$s</string>
+    <string name="export_done">Данные сохранены</string>
+    <string name="export_error">❌ Ошибка сохранения</string>
+    <string name="export_permission_denied">Нет разрешения на запись файла</string>
+    <string name="health_scale_title">Оценка состояния</string>
+    <string name="vk_login_failed">Не удалось войти через VK</string>
+    <string name="vk_already_logged_in">Вы уже вошли через VK</string>
+    <string name="vk_profile_error">Не удалось загрузить профиль VK</string>
+    <string name="toggle_theme">Сменить тему</string>
+    <string name="biometric_lock_title">Вход по биометрии</string>
+    <string name="biometric_unavailable">Биометрия недоступна на этом устройстве</string>
+    <string name="biometric_failed">Не удалось подтвердить личность</string>
+    <string name="theme_changed">Тема: %1$s</string>
+    <string name="theme_light">светлая</string>
+    <string name="theme_dark">тёмная</string>
+    <string name="theme_system">системная</string>
+    <string name="biometric_enabled">Биометрический вход включён</string>
+    <string name="biometric_disabled">Биометрический вход выключен</string>
+    <string name="pet_deleted">Питомец «%1$s» удалён</string>
+    <string name="pet_restored">Питомец «%1$s» восстановлен</string>
+    <string name="undo">Отменить</string>
+    <string name="search_pets">Поиск питомца</string>
+    <string name="search_hint">Кличка, порода…</string>
+    <string name="no_search_results">Ничего не найдено</string>
+    <string name="weight_history">Вес и график</string>
+    <string name="add_weight">Записать взвешивание</string>
+    <string name="weight_kg_hint">Вес, кг</string>
+    <string name="weight_added">Вес записан</string>
+    <string name="weight_invalid">Введите корректный вес</string>
+    <string name="chart_empty">Добавьте минимум два взвешивания для графика</string>
+    <string name="post_to_vk">Опубликовать в VK</string>
+    <string name="vk_post_success">Опубликовано на вашей стене</string>
+    <string name="vk_post_failed">Не удалось опубликовать</string>
+    <string name="vk_not_logged_in">Сначала войдите через VK</string>
+    <string name="vk_no_photo">Сначала добавьте фото питомца</string>
+    <string name="vk_post_message">Мой питомец %1$s 🐾</string>
+    <string name="health_report_title">PDF-отчёт</string>
+    <string name="report_saved">Отчёт сохранён в «Загрузки»</string>
+    <string name="report_error">Не удалось создать отчёт</string>
+    <string name="name_required">Имя обязательно</string>
+    <string name="pet_name_hint">Кличка</string>
+    <string name="pet_detail_hint">Заметки</string>
+    <string name="title_activity_add_pet">Новый питомец</string>
+    <string name="title_activity_health">Здоровье</string>
+    <string-array name="pet_species">
+        <item>Собака</item>
+        <item>Кошка</item>
+        <item>Птица</item>
+        <item>Рыбка</item>
+        <item>Грызун</item>
+        <item>Другое</item>
+    </string-array>
+    <string name="pet_health">Здоровье питомца</string>
+    <string name="scale_pick">Выберите состояние</string>
+    <string name="scale_0">0 - Критическое состояние</string>
+    <string name="scale_1">1 - Очень плохо</string>
+    <string name="scale_2">2 - Плохо</string>
+    <string name="scale_3">3 - Нездорово</string>
+    <string name="scale_4">4 - Нормально</string>
+    <string name="scale_5">5 - Хорошо</string>
+    <string name="scale_6">6 - В хорошем состоянии</string>
+    <string name="scale_7">7 - Отлично</string>
+    <string name="scale_8">8 - Прекрасно</string>
+    <string name="scale_9">9 - Идеально</string>
+    <string name="scale_10">10 - Невероятно</string>
+    <string name="scale_save">Сохранить состояние</string>
+    <string name="export_desc">Экспортирует все данные приложения в JSON-файл для резервной копии.</string>
+    <string name="export_button">Экспортировать данные</string>
+    <string name="export_hint">Нажмите кнопку для экспорта данных в Download/mypet_backup.json</string>
+    <string name="feeding_weight_hint">Вес (кг)</string>
+    <string name="feeding_age_hint">Возраст (лет)</string>
+    <string name="feeding_activity_level">Уровень активности:</string>
+    <string name="feeding_activity_low">Низкая</string>
+    <string name="feeding_activity_medium">Средняя</string>
+    <string name="feeding_activity_high">Высокая</string>
+    <string name="feeding_calculate">Рассчитать</string>
+    <string name="feeding_reset">Сброс</string>
+    <string name="feeding_hint">Нажмите \'Рассчитать\' для получения рекомендаций</string>
+    <string name="maps_search_hint">Поиск клиники</string>
+    <string name="maps_search_nearby">Поиск рядом</string>
+    <string name="maps_open_in_gmaps">Открыть в Google Maps</string>
+    <string name="choose_photo">Выбрать фото</string>
+    <string name="breed_hint">Порода</string>
+    <string name="age_hint">Возраст (лет)</string>
+    <string name="weight_hint">Вес (кг)</string>
+    <string name="pet_open_failed">Не удалось открыть питомца</string>
+    <string name="pet_generic">Питомец</string>
+    <string name="no_notes">Нет заметок</string>
+    <string name="biometric_prompt_title">Вход в LifePet</string>
+    <string name="biometric_prompt_subtitle">Подтвердите личность для доступа</string>
+    <string name="biometric_auth_failed">Аутентификация не пройдена</string>
+    <string name="location_permission_denied">Разрешение на геолокацию отклонено</string>
+    <string name="vet_clinic_query">ветеринарная клиника</string>
+    <string name="calendar_visit_title">Приём ветеринара — %1$s</string>
+    <string name="health_title_format">Здоровье: %1$s</string>
+    <string name="tab_vaccinations">Прививки</string>
+    <string name="tab_doctor">Врач</string>
+    <string name="reminder_default">Напоминание</string>
+    <string name="reminder_channel_name">Напоминания питомца</string>
+    <string name="reminder_channel_desc">Уведомления о прививках и визитах к врачу</string>
+    <string name="reminder_vaccination_title">Прививка: %1$s</string>
+    <string name="reminder_vaccination_text">Завтра: %1$s для %2$s</string>
+    <string name="reminder_visit_title">Визит к врачу</string>
+    <string name="reminder_visit_text">Завтра: %1$s с %2$s (%3$s)</string>
+    <string name="scale_saved">Состояние сохранено: %1$s</string>
+    <string name="report_pdf_title">Медицинский отчет</string>
+    <string name="report_pdf_pet">Питомец: %1$s</string>
+    <string name="report_pdf_date">Дата отчета: %1$s</string>
+    <string name="report_pdf_vaccinations">Прививки:</string>
+    <string name="report_pdf_no_vaccinations">Нет данных о прививках</string>
+    <string name="report_pdf_notes">  Заметки: %1$s</string>
+    <string name="report_pdf_visits">Визиты к врачу:</string>
+    <string name="report_pdf_no_visits">Нет данных о визитах</string>
+    <string name="report_pdf_diagnosis">  Диагноз: %1$s</string>
+    <string-array name="scale_descriptions">
+        <item>Критическое состояние</item>
+        <item>Очень плохо</item>
+        <item>Плохо</item>
+        <item>Нездорово</item>
+        <item>Нормально</item>
+        <item>Хорошо</item>
+        <item>В хорошем состоянии</item>
+        <item>Отлично</item>
+        <item>Прекрасно</item>
+        <item>Идеально</item>
+        <item>Невероятно</item>
+    </string-array>
+    <string name="kg_unit">кг</string>
+    <string name="feeding_result">🍽️ Порция: %1$s г/приём (2 раза/день)\n📊 Дневная порция: %2$s г\n🐕 По возрасту: %3$s г\n🔥 Калории: %4$s ккал</string>
 </resources>

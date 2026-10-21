@@ -1,10 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.smock210.mypet">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+
+    <!-- Напоминания (FIX_PLAN.md, 0.2) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
+    <!-- Экспорт данных на Android 9 и ниже (MediaStore используется на 29+) -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <!-- Камера/видео (video/VideoRecorderHelper) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <application
+        android:name=".VkApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -12,26 +31,37 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyPet">
         <activity
-            android:name=".RegistrActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MainLoginForm"
-            android:exported="false"
-            android:label="@string/title_activity_main_login_form"
-            android:theme="@style/Theme.MyPet.NoActionBar" />
-        <activity
             android:name=".MainDetailActivity"
             android:label="@string/title_activity_main_detail"
             android:theme="@style/Theme.MyPet.NoActionBar" />
         <activity
-            android:name=".MainActivity"
-            android:exported="true">
+            android:name=".AddPetActivity"
+            android:exported="false"
+            android:label="@string/title_activity_add_pet"
+            android:theme="@style/Theme.MyPet.NoActionBar" />
+        <activity
+            android:name=".ToolsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyPet.NoActionBar" />
+        <receiver
+            android:name=".notifications.NotificationReceiver"
+            android:exported="false" />
+        <activity
+            android:name=".health.HealthActivity"
+            android:exported="false"
+            android:label="@string/title_activity_health" />
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MyPet.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".MainActivity"
+            android:exported="true" />
     </application>
 
 </manifest>

@@ -2,11 +2,45 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-    android:id="@+id/menu_vhod"
-    android:title="Войти"
-        app:showAsAction="always"/>
+        android:id="@+id/menu_search"
+        android:title="@string/search_pets"
+        android:icon="@android:drawable/ic_menu_search"
+        app:showAsAction="ifRoom|collapseActionView"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
+    <item
+        android:id="@+id/menu_add_pet"
+        android:title="@string/add_pet"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/menu_vhod"
+        android:title="Войти"
+        app:showAsAction="never" />
     <item
         android:id="@+id/menu_registr"
         android:title="Зарегистрироваться"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_feeding_calc"
+        android:title="@string/feeding_calc_title"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_export_data"
+        android:title="@string/export_title"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_health_scale"
+        android:title="@string/health_scale_title"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_maps"
+        android:title="@string/maps_title"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_toggle_theme"
+        android:title="@string/toggle_theme"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_biometric_lock"
+        android:title="@string/biometric_lock_title"
+        app:showAsAction="never" />
 </menu>

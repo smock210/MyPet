@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LifePet</string>
+    <string name="StartLabel">Pet diary</string>
+    <string name="title_activity_main_detail">Detail</string>
+    <string name="defolt_тame">User</string>
+
+    <string name="input_pass">Enter password</string>
+    <string name="add_pet">Add pet</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="pet_saved">Pet saved</string>
+    <string name="pet_updated">Pet details updated</string>
+    <string name="edit_pet">Edit pet</string>
+    <string name="edit">Edit</string>
+    <string name="no_pets">No pets yet.\nAdd your first one via the “⋯” menu → “Add pet”</string>
+    <string name="delete">Delete</string>
+    <string name="update">Update</string>
+    <string name="no_records">No records yet</string>
+    <string name="add_vaccination_title">Vaccination</string>
+    <string name="add_visit_title">Vet visit</string>
+    <string name="vaccine_name_hint">Vaccine name</string>
+    <string name="date_hint">Date</string>
+    <string name="time_hint">Time</string>
+    <string name="clinic_hint">Clinic name</string>
+    <string name="doctor_hint">Doctor</string>
+    <string name="diagnosis_hint">Diagnosis</string>
+    <string name="delete_record_title">Delete record?</string>
+    <string name="record_added">Record added</string>
+    <string name="record_updated">Record updated</string>
+    <string name="fill_clinic_date">Fill in clinic and date</string>
+    <string name="gallery_photo">Pet photo</string>
+    <string name="add_photo">Add photo</string>
+    <string name="photo_deleted">Photo deleted</string>
+    <string name="photo_is_primary">Main photo updated</string>
+    <string name="photos_empty">No photos yet</string>
+    <string name="record_video">Record video</string>
+    <string name="video_saved">Video saved to gallery</string>
+    <string name="video_failed">Could not record video</string>
+    <string name="video_open">Open video</string>
+    <string name="maps_title">Vet clinics on map</string>
+    <string name="maps_enter_address">Enter an address or name</string>
+    <string name="maps_not_found">Nothing found</string>
+    <string name="maps_not_ready">Map is not ready, try again</string>
+    <string name="feeding_calc_title">Feeding calculator</string>
+    <string name="export_title">Export data</string>
+    <string name="export_success">✅ Saved: %1$s</string>
+    <string name="export_done">Data saved</string>
+    <string name="export_error">❌ Save failed</string>
+    <string name="export_permission_denied">No permission to write the file</string>
+    <string name="health_scale_title">Health assessment</string>
+    <string name="vk_login_failed">VK login failed</string>
+    <string name="vk_already_logged_in">You are already logged in via VK</string>
+    <string name="vk_profile_error">Could not load VK profile</string>
+    <string name="toggle_theme">Change theme</string>
+    <string name="biometric_lock_title">Biometric login</string>
+    <string name="biometric_unavailable">Biometrics are not available on this device</string>
+    <string name="biometric_failed">Could not verify your identity</string>
+    <string name="theme_changed">Theme: %1$s</string>
+    <string name="theme_light">light</string>
+    <string name="theme_dark">dark</string>
+    <string name="theme_system">system</string>
+    <string name="biometric_enabled">Biometric login enabled</string>
+    <string name="biometric_disabled">Biometric login disabled</string>
+    <string name="pet_deleted">Pet “%1$s” deleted</string>
+    <string name="pet_restored">Pet “%1$s” restored</string>
+    <string name="undo">Undo</string>
+    <string name="search_pets">Search pet</string>
+    <string name="search_hint">Name, breed…</string>
+    <string name="no_search_results">Nothing found</string>
+    <string name="weight_history">Weight and chart</string>
+    <string name="add_weight">Record weighing</string>
+    <string name="weight_kg_hint">Weight, kg</string>
+    <string name="weight_added">Weight recorded</string>
+    <string name="weight_invalid">Enter a valid weight</string>
+    <string name="chart_empty">Add at least two weighings to see the chart</string>
+    <string name="post_to_vk">Post to VK</string>
+    <string name="vk_post_success">Posted to your wall</string>
+    <string name="vk_post_failed">Could not post</string>
+    <string name="vk_not_logged_in">Log in via VK first</string>
+    <string name="vk_no_photo">Add a pet photo first</string>
+    <string name="vk_post_message">My pet %1$s 🐾</string>
+    <string name="health_report_title">PDF report</string>
+    <string name="report_saved">Report saved to “Downloads”</string>
+    <string name="report_error">Could not create the report</string>
+    <string name="name_required">Name is required</string>
+    <string name="pet_name_hint">Name</string>
+    <string name="pet_detail_hint">Notes</string>
+    <string name="title_activity_add_pet">New pet</string>
+    <string name="title_activity_health">Health</string>
+    <string-array name="pet_species">
+        <item>Dog</item>
+        <item>Cat</item>
+        <item>Bird</item>
+        <item>Fish</item>
+        <item>Rodent</item>
+        <item>Other</item>
+    </string-array>
+    <string name="pet_health">Pet health</string>
+    <string name="scale_pick">Select a condition</string>
+    <string name="scale_0">0 - Critical</string>
+    <string name="scale_1">1 - Very bad</string>
+    <string name="scale_2">2 - Bad</string>
+    <string name="scale_3">3 - Unhealthy</string>
+    <string name="scale_4">4 - Normal</string>
+    <string name="scale_5">5 - Good</string>
+    <string name="scale_6">6 - Fair</string>
+    <string name="scale_7">7 - Great</string>
+    <string name="scale_8">8 - Excellent</string>
+    <string name="scale_9">9 - Ideal</string>
+    <string name="scale_10">10 - Incredible</string>
+    <string name="scale_save">Save condition</string>
+    <string name="export_desc">Exports all app data to a JSON file for backup.</string>
+    <string name="export_button">Export data</string>
+    <string name="export_hint">Tap the button to export data to Download/mypet_backup.json</string>
+    <string name="feeding_weight_hint">Weight (kg)</string>
+    <string name="feeding_age_hint">Age (years)</string>
+    <string name="feeding_activity_level">Activity level:</string>
+    <string name="feeding_activity_low">Low</string>
+    <string name="feeding_activity_medium">Medium</string>
+    <string name="feeding_activity_high">High</string>
+    <string name="feeding_calculate">Calculate</string>
+    <string name="feeding_reset">Reset</string>
+    <string name="feeding_hint">Tap \'Calculate\' to get recommendations</string>
+    <string name="maps_search_hint">Clinic search</string>
+    <string name="maps_search_nearby">Search nearby</string>
+    <string name="maps_open_in_gmaps">Open in Google Maps</string>
+    <string name="choose_photo">Choose photo</string>
+    <string name="breed_hint">Breed</string>
+    <string name="age_hint">Age (years)</string>
+    <string name="weight_hint">Weight (kg)</string>
+    <string name="pet_open_failed">Could not open the pet</string>
+    <string name="pet_generic">Pet</string>
+    <string name="no_notes">No notes</string>
+    <string name="biometric_prompt_title">Sign in to LifePet</string>
+    <string name="biometric_prompt_subtitle">Confirm your identity to continue</string>
+    <string name="biometric_auth_failed">Authentication failed</string>
+    <string name="location_permission_denied">Location permission denied</string>
+    <string name="vet_clinic_query">veterinary clinic</string>
+    <string name="calendar_visit_title">Vet visit — %1$s</string>
+    <string name="health_title_format">Health: %1$s</string>
+    <string name="tab_vaccinations">Vaccinations</string>
+    <string name="tab_doctor">Doctor</string>
+    <string name="reminder_default">Reminder</string>
+    <string name="reminder_channel_name">Pet reminders</string>
+    <string name="reminder_channel_desc">Notifications about vaccinations and vet visits</string>
+    <string name="reminder_vaccination_title">Vaccination: %1$s</string>
+    <string name="reminder_vaccination_text">Tomorrow: %1$s for %2$s</string>
+    <string name="reminder_visit_title">Vet visit</string>
+    <string name="reminder_visit_text">Tomorrow: %1$s with %2$s (%3$s)</string>
+    <string name="scale_saved">Condition saved: %1$s</string>
+    <string name="report_pdf_title">Health report</string>
+    <string name="report_pdf_pet">Pet: %1$s</string>
+    <string name="report_pdf_date">Report date: %1$s</string>
+    <string name="report_pdf_vaccinations">Vaccinations:</string>
+    <string name="report_pdf_no_vaccinations">No vaccination data</string>
+    <string name="report_pdf_notes">  Notes: %1$s</string>
+    <string name="report_pdf_visits">Vet visits:</string>
+    <string name="report_pdf_no_visits">No visit data</string>
+    <string name="report_pdf_diagnosis">  Diagnosis: %1$s</string>
+    <string-array name="scale_descriptions">
+        <item>Critical</item>
+        <item>Very bad</item>
+        <item>Bad</item>
+        <item>Unhealthy</item>
+        <item>Normal</item>
+        <item>Good</item>
+        <item>Fair</item>
+        <item>Great</item>
+        <item>Excellent</item>
+        <item>Ideal</item>
+        <item>Incredible</item>
+    </string-array>
+    <string name="kg_unit">kg</string>
+    <string name="feeding_result">🍽️ Portion: %1$s g/meal (2 meals/day)\n📊 Daily portion: %2$s g\n🐕 By age: %3$s g\n🔥 Calories: %4$s kcal</string>
+</resources>
