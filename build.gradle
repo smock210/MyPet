@@ -20,6 +20,15 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // Репозиторий Huawei (HMS SDK). В этом окружении POM-файлы HMS
+        // недоступны (404), поэтому включён только разбор артефактов —
+        // транзитивные зависимости указываются явно в app/build.gradle.
+        maven {
+            url 'https://developer.huawei.com/repo/'
+            metadataSources {
+                artifact()
+            }
+        }
     }
 }
 
