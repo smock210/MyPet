@@ -25,11 +25,29 @@ class HuaweiNativeAuthProvider : AuthProvider(PROVIDER_ID) {
 
     override val title: String = "Huawei ID"
 
+    /**
+     * Нативный вход доступен, если:
+     * - на устройстве установлен HMS Core (`com.huawei.hwid`);
+     * - в приложении есть полный HMS SDK.
+     *
+     * Второе условие важно: модуль `com.huawei.hms:core` (с классами
+     * `com.huawei.hms.utils.Checker` и др.) может отсутствовать в сборке —
+     * тогда нативный путь упал бы с NoClassDefFoundError, и приложение
+     * переходит на веб-авторизацию.
+     */
     override fun isAvailable(context: android.content.Context): Boolean =
-        isHmsAvailable(context)
+        isHmsAvailable(context) && isSdkComplete()
 
     /** Настройка задаётся agconnect-services.json, а не вручную. */
     override fun isConfigured(context: android.content.Context): Boolean = isHmsAvailable(context)
+
+    /** Проверяет наличие класса из модуля `com.huawei.hms:core`. */
+    private fun isSdkComplete(): Boolean = try {
+        Class.forName("com.huawei.hms.utils.Checker")
+        true
+    } catch (e: Throwable) {
+        false
+    }
 
     override fun signIn(
         activity: FragmentActivity,
@@ -47,7 +65,8 @@ class HuaweiNativeAuthProvider : AuthProvider(PROVIDER_ID) {
                 HuaweiIdAuthParams.DEFAULT_AUTH_REQUEST_PARAM
             )
             launcher.launch(service.getSignInIntent(REQUEST_CODE))
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // В том числе NoClassDefFoundError, если в сборке нет модуля core
             pendingCallback = null
             onResult(
                 AuthResult.Error(

@@ -42,10 +42,13 @@ import java.util.Base64 as JavaBase64
 class HuaweiAuthActivity : AppCompatActivity() {
 
     private var codeVerifier: String = ""
-    private var loopback: HuaweiLoopbackServer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Не даём копиться экземплярам: предыдущий экран авторизации закрываем
+        currentInstance?.finish()
+        currentInstance = this
 
         val clientId = AuthConfig.huaweiClientId(this)
         val redirectUri = AuthConfig.huaweiRedirectUri(this)
@@ -65,9 +68,8 @@ class HuaweiAuthActivity : AppCompatActivity() {
         codeVerifier = randomString(64)
         val codeChallenge = sha256Base64Url(codeVerifier)
 
-        val server = HuaweiLoopbackServer(port)
-        loopback = server
-        val started = runCatching { server.start() }.isSuccess
+        val server = HuaweiLoopbackServer
+        val started = server.start(port)
         if (!started) {
             fail(getString(com.smock210.mypet.R.string.huawei_loopback_failed, port))
             return
@@ -84,8 +86,17 @@ class HuaweiAuthActivity : AppCompatActivity() {
             append("&code_challenge_method=S256")
         }
 
-        openBrowser(authorizeUrl)
-        awaitCode(state)
+        // Предварительно проверяем настройки клиента: иначе Huawei покажет
+        // пользователю JSON с ошибкой вместо формы входа.
+        lifecycleScope.launch {
+            val problem = HuaweiAuthConfigChecker.check(clientId, redirectUri, codeChallenge)
+            if (problem != null) {
+                fail(problem)
+                return@launch
+            }
+            openBrowser(authorizeUrl)
+            awaitCode(state)
+        }
     }
 
     private fun openBrowser(url: String) {
@@ -108,7 +119,7 @@ class HuaweiAuthActivity : AppCompatActivity() {
     /** Ждём код авторизации, который придёт на локальный сервер. */
     private fun awaitCode(expectedState: String) {
         lifecycleScope.launch {
-            val outcome = loopback?.await(TIMEOUT_MS)
+            val outcome = HuaweiLoopbackServer.await(TIMEOUT_MS)
             if (outcome == null) {
                 fail(getString(com.smock210.mypet.R.string.huawei_timeout))
                 return@launch
@@ -237,8 +248,11 @@ class HuaweiAuthActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        loopback?.stop()
-        loopback = null
+        if (currentInstance === this) {
+            currentInstance = null
+            // Освобождаем порт, чтобы следующая попытка входа могла его занять
+            HuaweiLoopbackServer.stop()
+        }
     }
 
     private fun randomString(length: Int): String {
@@ -272,6 +286,9 @@ class HuaweiAuthActivity : AppCompatActivity() {
 
         /** Порт локального сервера, если он не указан в redirect URI. */
         const val DEFAULT_PORT = 8765
+
+        /** Текущий активный экран авторизации (чтобы не копить экземпляры). */
+        private var currentInstance: HuaweiAuthActivity? = null
 
         private const val TAG = "HuaweiAuth"
         private const val TIMEOUT_MS = 5 * 60 * 1000L

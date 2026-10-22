@@ -5,7 +5,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.URLDecoder
 import java.util.concurrent.Executors
@@ -15,37 +15,66 @@ import java.util.concurrent.Executors
  *
  * Huawei ID (веб-авторизация) требует зарегистрированный в AppGallery
  * Connect redirect URI. Форматы `mypet://` Huawei отклоняет, а
- * `http://localhost:<порт>/...` — принимает, поэтому приложение поднимает
+ * `http://127.0.0.1:<порт>/...` — принимает, поэтому приложение поднимает
  * сервер на 127.0.0.1 и ловит код авторизации прямо на устройстве
  * (внешний сервер не нужен).
  *
  * Redirect URI должен быть указан в AppGallery Connect дословно, например:
- * `http://localhost:8765/oauth/huawei`.
+ * `http://127.0.0.1:8765/oauth/huawei`.
+ *
+ * Сервер — синглтон на процесс: повторные попытки входа не должны падать
+ * с «порт занят», а принятый код должен уходить только ожидающему потоку.
  */
-class HuaweiLoopbackServer(private val port: Int) {
+object HuaweiLoopbackServer {
 
-    /** Результат: код авторизации либо ошибка. */
+    /** Результат редиректа: код авторизации либо ошибка. */
     data class Outcome(val code: String?, val error: String?, val state: String?)
 
-    private val outcome = CompletableDeferred<Outcome>()
+    private val lock = Any()
     private var serverSocket: ServerSocket? = null
+    private var boundPort: Int = -1
+    private var pending: CompletableDeferred<Outcome>? = null
 
     /** Реально занятый порт (если передан 0 — порт выбирает система). */
-    val actualPort: Int get() = serverSocket?.localPort ?: port
+    val actualPort: Int
+        get() = synchronized(lock) { serverSocket?.localPort ?: boundPort }
 
-    /** Запускает сервер и слушает один успешный редирект. */
-    fun start() {
-        val socket = ServerSocket(port, 8, InetAddress.getByName("127.0.0.1"))
-        serverSocket = socket
-        Executors.newSingleThreadExecutor().execute {
-            try {
-                while (!outcome.isCompleted) {
-                    val client = socket.accept()
-                    handle(client)
-                }
-            } catch (e: Exception) {
-                if (!outcome.isCompleted) outcome.complete(Outcome(null, e.message, null))
+    /**
+     * Запускает сервер на [port] (или переиспользует уже запущенный).
+     * @return false, если порт занят другим процессом.
+     */
+    fun start(port: Int): Boolean = synchronized(lock) {
+        if (serverSocket != null && boundPort == port) {
+            // Сервер уже работает: сбрасываем предыдущее ожидание
+            pending?.cancel()
+            pending = CompletableDeferred()
+            return true
+        }
+        stop()
+        return try {
+            val socket = ServerSocket()
+            socket.reuseAddress = true
+            socket.bind(InetSocketAddress("127.0.0.1", port), 8)
+            serverSocket = socket
+            boundPort = socket.localPort
+            pending = CompletableDeferred()
+            Executors.newSingleThreadExecutor().execute { acceptLoop(socket) }
+            true
+        } catch (e: Exception) {
+            serverSocket = null
+            boundPort = -1
+            false
+        }
+    }
+
+    private fun acceptLoop(socket: ServerSocket) {
+        try {
+            while (true) {
+                val client = socket.accept()
+                handle(client)
             }
+        } catch (e: Exception) {
+            // Сервер закрыт — нормальное завершение
         }
     }
 
@@ -78,7 +107,9 @@ class HuaweiLoopbackServer(private val port: Int) {
                 val state = params["state"]
 
                 if (!code.isNullOrBlank() || !error.isNullOrBlank()) {
-                    outcome.complete(Outcome(code, error, state))
+                    synchronized(lock) {
+                        pending?.complete(Outcome(code, error, state))
+                    }
                 }
 
                 val html = if (!code.isNullOrBlank() || !error.isNullOrBlank()) {
@@ -114,10 +145,20 @@ class HuaweiLoopbackServer(private val port: Int) {
     }
 
     /** Ждёт редирект не дольше [timeoutMs]. */
-    suspend fun await(timeoutMs: Long): Outcome? = withTimeoutOrNull(timeoutMs) { outcome.await() }
+    suspend fun await(timeoutMs: Long): Outcome? {
+        val deferred = synchronized(lock) { pending }
+        if (deferred == null) return null
+        return withTimeoutOrNull(timeoutMs) { deferred.await() }
+    }
 
+    /** Освобождает порт (вызывается, когда активность авторизации завершена). */
     fun stop() {
-        runCatching { serverSocket?.close() }
-        serverSocket = null
+        synchronized(lock) {
+            runCatching { serverSocket?.close() }
+            serverSocket = null
+            boundPort = -1
+            pending?.cancel()
+            pending = null
+        }
     }
 }

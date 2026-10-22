@@ -27,6 +27,7 @@ import com.smock210.mypet.ui.auth.AuthProfile
 import com.smock210.mypet.ui.auth.AuthProviders
 import com.smock210.mypet.ui.auth.AuthProvider
 import com.smock210.mypet.ui.auth.AuthResult
+import com.smock210.mypet.ui.auth.HuaweiNativeAuthProvider
 import com.smock210.mypet.viewmodel.PetViewModel
 import com.squareup.picasso.Picasso
 import com.vk.api.sdk.VK
@@ -117,7 +118,23 @@ class MainActivity : AppCompatActivity(),
     /** Запуск входа через выбранного провайдера (Google / Huawei ID). */
     private fun signInWith(provider: AuthProvider) {
         activeProvider = provider
-        provider.signIn(this, authLauncher) { result -> onAuthResult(result) }
+        try {
+            provider.signIn(this, authLauncher) { result -> onAuthResult(result) }
+        } catch (e: Throwable) {
+            // Например, NoClassDefFoundError, если в сборке не хватает части HMS SDK:
+            // не роняем приложение, а предлагаем веб-авторизацию Huawei ID.
+            Log.w("Auth", "Не удалось запустить вход через ${provider.id}: ${e.message}")
+            if (provider.id == HuaweiNativeAuthProvider.PROVIDER_ID) {
+                Toast.makeText(this, R.string.huawei_native_unavailable, Toast.LENGTH_LONG).show()
+                signInWith(AuthProviders.huawei())
+            } else {
+                Toast.makeText(
+                    this,
+                    getString(R.string.auth_login_failed, e.message ?: provider.id),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
     /** Обработка результата входа через Google / Huawei ID. */
@@ -132,8 +149,14 @@ class MainActivity : AppCompatActivity(),
                     securePrefs.saveProfileEmail(result.profile.email.orEmpty())
                 }
             }
-            is AuthResult.Error ->
+            is AuthResult.Error -> {
                 Toast.makeText(this, getString(R.string.auth_login_failed, result.message), Toast.LENGTH_LONG).show()
+                // Нативный вход по HMS не удался — пробуем веб-авторизацию Huawei ID
+                if (activeProvider?.id == HuaweiNativeAuthProvider.PROVIDER_ID) {
+                    activeProvider = null
+                    signInWith(AuthProviders.huawei())
+                }
+            }
             AuthResult.Cancelled -> Unit
         }
     }

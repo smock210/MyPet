@@ -243,4 +243,6 @@
     <string name="huawei_native_title">Huawei ID (HMS)</string>
 
     <string name="huawei_ags_android_setup">В AGC «Android»: пакет %1$s, SHA-256: %2$s</string>
+
+    <string name="huawei_native_unavailable">Нативный вход HMS недоступен — открываем вход через браузер</string>
 </resources>

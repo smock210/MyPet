@@ -482,4 +482,29 @@ P3 (полировка):       0.3/0.4 чистка, 5.2–5.4, 6.1–6.8
 
 **Выбор провайдера:** на Huawei/Honor с HMS Core → нативный вход; иначе Google (если есть Play Services) → веб-Huawei → Google. Правило вынесено в чистую функцию `chooseProvider` и покрыто тестами (+2, всего 32/32 зелёные).
 
+
+### 22.10.2026 — Исправлено падение при входе через Huawei ID
+
+**Симптом:** при нажатии «Войти через Huawei ID» приложение закрывалось.
+
+**Причина падения (по logcat на Huawei AQM-LX1):**
+```
+java.lang.NoClassDefFoundError: Failed resolution of: Lcom/huawei/hms/utils/Checker;
+    at com.huawei.hms.common.HuaweiApi.<init>
+    at com.huawei.hms.support.hwid.HuaweiIdAuthManager.getService
+```
+Классы `com.huawei.hms.utils.*`, `com.huawei.hms.common.api.*`, `com.huawei.hms.ui.*` и ещё 17 — из модуля **`com.huawei.hms:core`**, который недоступен в зеркале репозитория (404, как и `com.huawei.hms:account`). Без него нативный HMS-вход невозможен.
+
+**Исправления:**
+- `HuaweiNativeAuthProvider.isAvailable()` теперь проверяет не только HMS Core, но и наличие класса из `core` (`Class.forName("com.huawei.hms.utils.Checker")`) — если модуля нет, нативный путь просто не предлагается;
+- `signIn` обёрнут в `try/catch (Throwable)` — `NoClassDefFoundError` это `Error`, а не `Exception`, раньше он пролетал мимо обработчика;
+- `MainActivity.signInWith()` ловит любые `Throwable` и переключается на веб-авторизацию Huawei ID вместо падения;
+- `HuaweiLoopbackServer` сделан **синглтоном** с `SO_REUSEADDR`: раньше каждая попытка входа поднимала новый сервер на порту 8765, и вторая падала с «порт занят» (на устройстве накопилось 26 экземпляров `HuaweiAuthActivity`);
+- `HuaweiAuthActivity` закрывает предыдущий экземпляр и освобождает порт в `onDestroy`;
+- добавлена предварительная проверка настроек клиента `HuaweiAuthConfigChecker` (endpoint `authorizeConfirm`): если redirect URI не зарегистрирован в AppGallery Connect, приложение показывает понятное сообщение **внутри приложения**, а не JSON-страницу в браузере. Учтено, что Huawei отвечает кодом 400 и кладёт тело в `errorStream`.
+
+**Проверено на устройстве (Huawei AQM-LX1, без GMS):** приложение не падает, вместо падения показывает «Redirect URI не зарегистрирован в AppGallery Connect: http://127.0.0.1:8765/oauth/huawei».
+
+**Осталось от пользователя:** внести Redirect URL `http://127.0.0.1:8765/oauth/huawei` в AppGallery Connect («Huawei ID» → Авторизация через веб).
+
 **Осталось вне плана (P3):** реальный поиск клиник по Places API (нужен ключ Google), `google-services.json` в `app/` можно удалить (Firebase отключён), CI пока не запускался (нет репозитория на GitHub).
