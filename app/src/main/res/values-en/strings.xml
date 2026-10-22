@@ -124,7 +124,7 @@
     <string name="feeding_hint">Tap \'Calculate\' to get recommendations</string>
     <string name="maps_search_hint">Clinic search</string>
     <string name="maps_search_nearby">Search nearby</string>
-    <string name="maps_open_in_gmaps">Open in Google Maps</string>
+    <string name="maps_open_in_yandex">Open in Yandex Maps</string>
     <string name="choose_photo">Choose photo</string>
     <string name="breed_hint">Breed</string>
     <string name="age_hint">Age (years)</string>
@@ -263,4 +263,12 @@
     <string name="back">Back</string>
 
     <string name="camera_permission_denied">Camera access is required to record video</string>
+
+    <!-- Maps: Yandex Maps (MapKit) -->
+    <string name="maps_route">Route</string>
+    <string name="maps_no_app">No maps app found</string>
+    <string name="maps_my_location">You are here</string>
+    <string name="maps_phone_template">Phone: %1$s</string>
+
+    <string name="maps_key_missing">Map unavailable: Yandex Maps API key is missing</string>
 </resources>

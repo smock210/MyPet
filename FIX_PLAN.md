@@ -547,4 +547,30 @@ java.lang.NoClassDefFoundError: Failed resolution of: Lcom/huawei/hms/utils/Chec
 
 **Проверки:** сборка ✅, тесты 33/33 ✅, на устройстве — карточка, меню действий, запрос разрешения на камеру работают без падений.
 
-**Осталось вне плана (P3):** реальный поиск клиник по Places API (нужен ключ Google), `google-services.json` в `app/` можно удалить (Firebase отключён), CI пока не запускался (нет репозитория на GitHub).
+### 22.10.2026 — Карты: Google Maps → Яндекс.Карты (MapKit)
+
+**Что было не так (воспроизведено в коде):**
+- экран «Ветклиники на карте» использовал Google Maps, но **API-ключа Google в манифесте не было** — карта отображалась пустым серым полем;
+- **разрешений на геолокацию (`ACCESS_FINE_LOCATION`/`ACCESS_COARSE_LOCATION`) в манифесте не было вообще**, хотя фрагмент запрашивал разрешение в рантайме — запрос всегда завершался отказом;
+- геопозиция шла через `FusedLocationProviderClient` (Google Play Services) — на устройствах без GMS (тот же Huawei AQM-LX1) работать не будет;
+- кнопка «Открыть в Google Maps» жёстко открывала `com.google.android.apps.maps`, которой на Huawei нет.
+
+**Сделано:**
+- подключён **MapKit 4.7.0-lite** (`com.yandex.android:maps.mobile`, Maven Central) — последняя версия с minSdk 23 (в 4.8+ SDK требует minSdk 26, поэтому пришлось выбрать именно её);
+- API-ключ берётся из `local.properties` (`MAPKIT_API_KEY`) → `BuildConfig` → `MapKitFactory.setApiKey()` в `VkApplication` (по документации Яндекса ключ обязан задаваться до `initialize`);
+- `MapsFragment` переведён на `com.yandex.mapkit.mapview.MapView`: обязательные `MapKitFactory.getInstance().onStart()/onStop()` + `mapView.onStart()/onStop()` привязаны к жизненному циклу фрагмента;
+- маркеры (клиники + «Вы здесь») рисуются кодом: круглая битмапа через `Canvas` в цветах темы (`colorPrimary`/`colorTertiary`), тап по маркеру показывает карточку клиники с действием «Маршрут»; слушатели тапов держатся в полях — MapKit хранит их по слабой ссылке;
+- **геопозиция переведена с Google Play Services на системный `LocationManager`** (GPS → Network → Passive, последнее известное положение + однократный запрос с таймаутом 10 с) — работает без GMS;
+- поиск по адресу остался на системном `Geocoder` (без ключей и запросов к платным API);
+- маршрут открывается в Яндекс.Картах: сначала URI-схема `yandexmaps://maps.yandex.ru/?rtext=...&rtt=auto`, затем https-ссылка `yandex.ru/maps` как фолбэк (открывается в приложении, если оно установлено, иначе в браузере);
+- `Clinic` больше не зависит от Google-SDK: введена своя модель `GeoPoint`, перевод в `com.yandex.mapkit.geometry.Point` делается в UI-слое.
+
+**Исправленные попутно баги:**
+- добавлены недостающие разрешения `ACCESS_FINE_LOCATION`/`ACCESS_COARSE_LOCATION` в манифест;
+- без API-ключа экран раньше мог упасть (`AssertionError: You need to set the API key before using MapKit!`) — теперь это перехватывается и показывается сообщение «Карта недоступна: не задан API-ключ» (проверено на эмуляторе: падений 0).
+
+**Проверки:** сборка ✅, тесты 33/33 ✅, на эмуляторе — экран карты открывается без падений (показывает сообщение о ключе, тайлы появятся после заполнения `MAPKIT_API_KEY`).
+
+**Требуется от пользователя:** получить ключ MapKit в [консоли разработчика](https://developer.tech.yandex.ru/services/) («MapKit Mobile SDK») и вписать его в `local.properties`: `MAPKIT_API_KEY=...`. Без ключа карта покажет сообщение, но приложение не падает.
+
+**Осталось вне плана (P3):** реальный поиск клиник (сейчас демонстрационный список, поиск идёт через системный Geocoder), `google-services.json` в `app/` можно удалить (Firebase отключён), CI пока не запускался (нет репозитория на GitHub).

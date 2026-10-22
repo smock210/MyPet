@@ -17,6 +17,11 @@ def vkServiceKey = localProps.getProperty('VK_SERVICE_KEY', '')
 def googleWebClientId = localProps.getProperty('GOOGLE_WEB_CLIENT_ID', '')
 def huaweiClientId = localProps.getProperty('HUAWEI_CLIENT_ID', '')
 def huaweiClientSecret = localProps.getProperty('HUAWEI_CLIENT_SECRET', '')
+// API-ключ Яндекс.Карт (MapKit). Получается в консоли разработчика:
+// https://developer.tech.yandex.ru/services/ → «MapKit Mobile SDK».
+// Ключ клиентский (уходит в APK), поэтому хранится в local.properties,
+// а не в репозитории.
+def mapkitApiKey = localProps.getProperty('MAPKIT_API_KEY', '')
 
 android {
     compileSdk 35
@@ -47,6 +52,7 @@ android {
             buildConfigField "String", "GOOGLE_WEB_CLIENT_ID", "\"${googleWebClientId}\""
             buildConfigField "String", "HUAWEI_CLIENT_ID", "\"${huaweiClientId}\""
             buildConfigField "String", "HUAWEI_CLIENT_SECRET", "\"${huaweiClientSecret}\""
+            buildConfigField "String", "MAPKIT_API_KEY", "\"${mapkitApiKey}\""
         }
         release {
             minifyEnabled false
@@ -55,6 +61,8 @@ android {
             buildConfigField "String", "GOOGLE_WEB_CLIENT_ID", "\"\""
             buildConfigField "String", "HUAWEI_CLIENT_ID", "\"\""
             buildConfigField "String", "HUAWEI_CLIENT_SECRET", "\"\""
+            // Ключ MapKit — клиентский (не секрет), карта нужна и в release
+            buildConfigField "String", "MAPKIT_API_KEY", "\"${mapkitApiKey}\""
         }
     }
 
@@ -157,10 +165,14 @@ dependencies {
     // Biometric - обновлено
     implementation 'androidx.biometric:biometric:1.2.0-alpha05'
 
-    // Maps
-    implementation 'com.google.android.gms:play-services-maps:18.2.0'
-    implementation 'com.google.android.gms:play-services-location:21.3.0'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0'
+    // Карты: Яндекс.Карты (MapKit) вместо Google Maps — работает и на
+    // устройствах без Google Play Services. lite-версия: карта, трафик,
+    // геопозиция. Поиск адресов — системный Geocoder, маршруты — открытием
+    // Яндекс.Карт по ссылке, поэтому платные модули не нужны.
+    // Версия 4.7.0 — последняя с minSdk 23 (в 4.8+ MapKit требует 26).
+    // Транзитивно тянет play-services-location (нужен самому MapKit),
+    // прямых зависимостей от GMS в коде больше нет.
+    implementation 'com.yandex.android:maps.mobile:4.7.0-lite'
 
     // Room - обновлено для SDK 35 (используются только runtime/ktx/testing)
     def room_version = '2.6.1'

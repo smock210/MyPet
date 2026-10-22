@@ -124,7 +124,7 @@
     <string name="feeding_hint">Нажмите \'Рассчитать\' для получения рекомендаций</string>
     <string name="maps_search_hint">Поиск клиники</string>
     <string name="maps_search_nearby">Поиск рядом</string>
-    <string name="maps_open_in_gmaps">Открыть в Google Maps</string>
+    <string name="maps_open_in_yandex">Открыть в Яндекс.Картах</string>
     <string name="choose_photo">Выбрать фото</string>
     <string name="breed_hint">Порода</string>
     <string name="age_hint">Возраст (лет)</string>
@@ -263,4 +263,12 @@
     <string name="back">Назад</string>
 
     <string name="camera_permission_denied">Нужен доступ к камере для записи видео</string>
+
+    <!-- Карты: Яндекс.Карты (MapKit) -->
+    <string name="maps_route">Маршрут</string>
+    <string name="maps_no_app">Не найдено приложение для карт</string>
+    <string name="maps_my_location">Вы здесь</string>
+    <string name="maps_phone_template">Телефон: %1$s</string>
+
+    <string name="maps_key_missing">Карта недоступна: не задан API-ключ Яндекс.Карт</string>
 </resources>
