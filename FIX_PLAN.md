@@ -416,4 +416,29 @@ P3 (полировка):       0.3/0.4 чистка, 5.2–5.4, 6.1–6.8
 
 **Тесты:** `AuthProvidersTest` — 6 тестов на правило выбора провайдера. Всего 27/27 зелёные.
 
+
+### 22.10.2026 — Исправлен вход через Huawei ID (телефон без Google-сервисов)
+
+**Симптом:** на Huawei без GSP вход через Huawei ID не отрабатывает.
+
+**Причины (две):**
+1. **Неверный хост эндпоинтов.** Использовался `oauth.huawei.com` — такого домена не существует (DNS не резолвится ни на Mac, ни на телефоне). Канонические адреса взяты из официального конфига провайдера `https://oauth-login.cloud.huawei.com/.well-known/openid-configuration`:
+   - `authorization_endpoint`: `https://oauth-login.cloud.huawei.com/oauth2/v3/authorize`;
+   - `token_endpoint`: `https://oauth-login.cloud.huawei.com/oauth2/v3/token`;
+   - `token_endpoint_auth_methods_supported`: `client_secret_post`;
+   - `scopes_supported`: `openid`, `email`, `profile`; `code_challenge_methods_supported`: `S256`.
+2. **Эндпоинта `userinfo` у Huawei нет** (404 на всех вариантах пути) — профиль нужно брать из JWT-токена `id_token` (claim'ы: `sub`, `name`/`display_name`, `picture`, `email`, `given_name`, `family_name`).
+
+**Исправления в коде:**
+- `HuaweiAuthActivity`: правильные эндпоинты, поддержка **PKCE (S256)** (`code_challenge` + `code_verifier`), разбор профиля из `id_token` (Base64URL-декодирование payload), обработка ошибок `error`/`error_description` от сервера;
+- `AuthConfig` — единый источник учётных данных: сначала зашифрованное хранилище, затем ресурсы;
+- **Экран «Диагностика входа»** получил поля для Google Web client ID и Huawei Client ID / Client Secret / Redirect URI с кнопкой «Сохранить» — настроить вход можно прямо на устройстве, без пересборки APK;
+- `SecurePreferencesManager` — хранение этих данных в EncryptedSharedPreferences.
+
+**Проверено на подключённом Huawei AQM-LX1 (без Google Play Services):**
+- приложение ставится и запускается без падений (зависимость Google не ломает старт);
+- редирект `mypet://oauth/huawei?code=...` корректно перехватывается `HuaweiRedirectActivity` (проверено через `am start`).
+
+**Что осталось от пользователя:** завести приложение в AppGallery Connect → «Huawei ID» → Авторизация через веб, получить Client ID / Client Secret, зарегистрировать Redirect URI `mypet://oauth/huawei` и внести значения на экране «Диагностика входа».
+
 **Осталось вне плана (P3):** реальный поиск клиник по Places API (нужен ключ Google), `google-services.json` в `app/` можно удалить (Firebase отключён), CI пока не запускался (нет репозитория на GitHub).

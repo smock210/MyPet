@@ -28,7 +28,7 @@
 | `ToolsActivity` | Универсальный контейнер экранов: калькулятор кормления, экспорт данных, оценка состояния, карта клиник, диагностика VK. |
 | `NewPetAdapt` | Адаптер RecyclerView списка питомцев (`ListAdapter` + `DiffUtil`). |
 | `sqlClass/*` | Room-слой: `AppDatabase` (v6, миграции 1→6), сущности `PetData`, `Vaccination`, `VetVisit`, `PetPhoto`, `WeightRecord`; DAO `EmployeeDao` (insert возвращает id), `HealthDao`, `PetPhotoDao`, `WeightDao`. Есть Flow-варианты запросов. |
-| `ui/auth/*` | Способы входа: `AuthProvider` (общий интерфейс), `GoogleAuthProvider` (Google Sign-In), `HuaweiAuthProvider` (Huawei ID через OAuth в браузере), `AuthProviders` — выбор провайдера по устройству. |
+| `ui/auth/*` | Способы входа: `AuthProvider` (общий интерфейс), `GoogleAuthProvider` (Google Sign-In), `HuaweiAuthProvider` (Huawei ID через OAuth 2.0/OIDC в браузере, PKCE S256, профиль из `id_token`), `AuthConfig` (учётные данные), `AuthProviders` — выбор провайдера по устройству. Эндпоинты Huawei: `oauth-login.cloud.huawei.com` (см. `/.well-known/openid-configuration`). |
 | `viewmodel/PetViewModel` | AndroidViewModel со StateFlow (`pets`, `vaccinations`, `visits`, `photos`, `weights`), реактивно из Room; снапшот для Undo-удаления. |
 
 ### Навигация

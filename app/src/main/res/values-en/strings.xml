@@ -207,9 +207,8 @@
     <string name="huawei_client_id" translatable="false"></string>
     <string name="huawei_client_secret" translatable="false"></string>
     <string name="huawei_redirect_uri" translatable="false">mypet://oauth/huawei</string>
-    <string name="huawei_authorize_endpoint" translatable="false">https://oauth.huawei.com/oauth2/v3/authorize</string>
-    <string name="huawei_token_endpoint" translatable="false">https://oauth.huawei.com/oauth2/v3/token</string>
-    <string name="huawei_userinfo_endpoint" translatable="false">https://oauth.huawei.com/oauth2/v3/userinfo</string>
+    <string name="huawei_authorize_endpoint" translatable="false">https://oauth-login.cloud.huawei.com/oauth2/v3/authorize</string>
+    <string name="huawei_token_endpoint" translatable="false">https://oauth-login.cloud.huawei.com/oauth2/v3/token</string>
     <string name="huawei_not_configured">Huawei ID sign-in is not configured: set huawei_client_id and redirect_uri</string>
     <string name="huawei_sign_in">Sign in with Huawei ID</string>
     <string name="huawei_auth_failed">Huawei ID sign-in failed</string>
@@ -226,4 +225,11 @@
     <string name="auth_diag_huawei_configured">Huawei ID configured (client id): %1$s</string>
     <string name="auth_diag_huawei_device">Huawei/Honor device: %1$s</string>
     <string name="auth_diag_hms">HMS Core installed: %1$s</string>
+
+    <string name="auth_credentials_title">Third-party credentials</string>
+    <string name="auth_google_client_id">Google: Web client ID</string>
+    <string name="auth_huawei_client_id">Huawei ID: Client ID</string>
+    <string name="auth_huawei_client_secret">Huawei ID: Client Secret</string>
+    <string name="auth_huawei_redirect_uri">Huawei ID: Redirect URI</string>
+    <string name="auth_credentials_saved">Credentials saved</string>
 </resources>

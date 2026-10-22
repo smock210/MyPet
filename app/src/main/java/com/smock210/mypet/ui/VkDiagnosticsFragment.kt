@@ -6,9 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textview.MaterialTextView
 import com.smock210.mypet.R
 import com.smock210.mypet.utils.VkAppConfigChecker
+import com.smock210.mypet.ui.auth.AuthConfig
 import com.smock210.mypet.ui.auth.AuthProviders
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.utils.VKUtils
@@ -47,6 +51,8 @@ class VkDiagnosticsFragment : Fragment() {
                 .orEmpty()
         }.getOrDefault(emptyList())
 
+        setupCredentialsFields(view)
+
         textView.text = buildLocalReport(appId, packageName, fingerprints) +
                 "\n\n" + buildProvidersReport()
 
@@ -57,6 +63,47 @@ class VkDiagnosticsFragment : Fragment() {
                     "\n\n" + buildProvidersReport() +
                     "\n\n" + buildRemoteReport(config)
         }
+    }
+
+    /**
+     * Поля учётных данных: позволяют настроить вход через Google/Huawei
+     * прямо на устройстве, без пересборки приложения.
+     */
+    private fun setupCredentialsFields(view: View) {
+        val googleId = view.findViewById<TextInputEditText>(R.id.et_google_client_id)
+        val huaweiId = view.findViewById<TextInputEditText>(R.id.et_huawei_client_id)
+        val huaweiSecret = view.findViewById<TextInputEditText>(R.id.et_huawei_client_secret)
+        val huaweiRedirect = view.findViewById<TextInputEditText>(R.id.et_huawei_redirect_uri)
+
+        googleId.setText(AuthConfig.googleWebClientId(requireContext()))
+        huaweiId.setText(AuthConfig.huaweiClientId(requireContext()))
+        huaweiSecret.setText(AuthConfig.huaweiClientSecret(requireContext()))
+        huaweiRedirect.setText(AuthConfig.huaweiRedirectUri(requireContext()))
+
+        view.findViewById<MaterialButton>(R.id.btn_save_credentials).setOnClickListener {
+            AuthConfig.setGoogleWebClientId(requireContext(), googleId.text?.toString().orEmpty())
+            AuthConfig.setHuaweiCredentials(
+                requireContext(),
+                huaweiId.text?.toString().orEmpty(),
+                huaweiSecret.text?.toString().orEmpty(),
+                huaweiRedirect.text?.toString().orEmpty()
+            )
+            Snackbar.make(view, R.string.auth_credentials_saved, Snackbar.LENGTH_SHORT).show()
+            refreshReport(view)
+        }
+    }
+
+    private fun refreshReport(view: View) {
+        val textView = view.findViewById<MaterialTextView>(R.id.tv_vk_diagnostics)
+        val appId = resources.getInteger(com.vk.api.sdk.R.integer.com_vk_sdk_AppId)
+        val packageName = requireContext().packageName
+        val fingerprints: List<String> = runCatching {
+            VKUtils.getCertificateFingerprint(requireContext(), packageName)
+                ?.filterNotNull()
+                .orEmpty()
+        }.getOrDefault(emptyList())
+        textView.text = buildLocalReport(appId, packageName, fingerprints) +
+                "\n\n" + buildProvidersReport()
     }
 
     private fun buildLocalReport(

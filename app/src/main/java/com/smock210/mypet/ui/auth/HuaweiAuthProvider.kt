@@ -27,8 +27,8 @@ class HuaweiAuthProvider : AuthProvider(PROVIDER_ID) {
     override fun isAvailable(context: Context): Boolean = true
 
     override fun isConfigured(context: Context): Boolean {
-        return context.getString(com.smock210.mypet.R.string.huawei_client_id).isNotBlank() &&
-            context.getString(com.smock210.mypet.R.string.huawei_redirect_uri).isNotBlank()
+        return AuthConfig.huaweiClientId(context).isNotBlank() &&
+            AuthConfig.huaweiRedirectUri(context).isNotBlank()
     }
 
     override fun signIn(

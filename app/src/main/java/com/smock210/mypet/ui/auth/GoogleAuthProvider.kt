@@ -10,7 +10,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.smock210.mypet.R
-
 /**
  * Вход через Google (Google Sign-In).
  *
@@ -31,7 +30,7 @@ class GoogleAuthProvider : AuthProvider(PROVIDER_ID) {
     }
 
     override fun isConfigured(context: Context): Boolean {
-        return context.getString(R.string.google_web_client_id).isNotBlank()
+        return AuthConfig.googleWebClientId(context).isNotBlank()
     }
 
     override fun signIn(
@@ -50,7 +49,7 @@ class GoogleAuthProvider : AuthProvider(PROVIDER_ID) {
         pendingCallback = onResult
 
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(activity.getString(R.string.google_web_client_id))
+            .requestIdToken(AuthConfig.googleWebClientId(activity))
             .requestEmail()
             .requestProfile()
             .build()

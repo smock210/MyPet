@@ -69,6 +69,28 @@ class SecurePreferencesManager(context: Context) {
 
     fun getProfileEmail(): String? = sp.getString(KEY_PROFILE_EMAIL, null)
 
+    // ---------- Учётные данные внешних систем авторизации ----------
+
+    fun saveGoogleWebClientId(value: String) {
+        sp.edit().putString(KEY_GOOGLE_WEB_CLIENT_ID, value).apply()
+    }
+
+    fun getGoogleWebClientId(): String? = sp.getString(KEY_GOOGLE_WEB_CLIENT_ID, null)
+
+    fun saveHuaweiCredentials(clientId: String, clientSecret: String, redirectUri: String) {
+        sp.edit()
+            .putString(KEY_HUAWEI_CLIENT_ID, clientId)
+            .putString(KEY_HUAWEI_CLIENT_SECRET, clientSecret)
+            .putString(KEY_HUAWEI_REDIRECT_URI, redirectUri)
+            .apply()
+    }
+
+    fun getHuaweiClientId(): String? = sp.getString(KEY_HUAWEI_CLIENT_ID, null)
+
+    fun getHuaweiClientSecret(): String? = sp.getString(KEY_HUAWEI_CLIENT_SECRET, null)
+
+    fun getHuaweiRedirectUri(): String? = sp.getString(KEY_HUAWEI_REDIRECT_URI, null)
+
     companion object {
         private const val PREFS_NAME = "secure_vk_prefs"
         private const val KEY_VK_TOKEN = "vk_token"
@@ -77,5 +99,9 @@ class SecurePreferencesManager(context: Context) {
         private const val KEY_PROFILE_PHOTO = "profile_photo"
         private const val KEY_PROFILE_PROVIDER = "profile_provider"
         private const val KEY_PROFILE_EMAIL = "profile_email"
+        private const val KEY_GOOGLE_WEB_CLIENT_ID = "google_web_client_id"
+        private const val KEY_HUAWEI_CLIENT_ID = "huawei_client_id"
+        private const val KEY_HUAWEI_CLIENT_SECRET = "huawei_client_secret"
+        private const val KEY_HUAWEI_REDIRECT_URI = "huawei_redirect_uri"
     }
 }
