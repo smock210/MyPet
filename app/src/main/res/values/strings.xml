@@ -245,4 +245,13 @@
     <string name="huawei_ags_android_setup">В AGC «Android»: пакет %1$s, SHA-256: %2$s</string>
 
     <string name="huawei_native_unavailable">Нативный вход HMS недоступен — открываем вход через браузер</string>
+
+    <!-- Главный экран -->
+    <string name="my_pets">Мои питомцы</string>
+    <string name="not_signed_in">Войдите для синхронизации</string>
+    <string name="signed_in_as">Вы вошли как %1$s</string>
+    <string name="no_pets_title">Пока нет питомцев</string>
+    <string name="no_pets_hint">Добавьте первого питомца — и здесь появятся его фото, прививки и записи к врачу</string>
+    <string name="no_search_results_title">Ничего не найдено</string>
+    <string name="vk_sign_in">Войти через VK</string>
 </resources>

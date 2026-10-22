@@ -245,4 +245,13 @@
     <string name="huawei_ags_android_setup">In AGC «Android»: package %1$s, SHA-256: %2$s</string>
 
     <string name="huawei_native_unavailable">Native HMS sign-in is unavailable — opening browser sign-in</string>
+
+    <!-- Main screen -->
+    <string name="my_pets">My pets</string>
+    <string name="not_signed_in">Sign in to sync</string>
+    <string name="signed_in_as">Signed in as %1$s</string>
+    <string name="no_pets_title">No pets yet</string>
+    <string name="no_pets_hint">Add your first pet — photos, vaccinations and vet visits will show up here</string>
+    <string name="no_search_results_title">Nothing found</string>
+    <string name="vk_sign_in">Sign in with VK</string>
 </resources>

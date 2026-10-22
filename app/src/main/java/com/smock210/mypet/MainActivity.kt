@@ -94,16 +94,26 @@ class MainActivity : AppCompatActivity(),
 
         binding = ActivityMainStartBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
 
         petViewModel = PetViewModel(application)
 
         petAdapter = NewPetAdapt(this, this)
-        binding.selectPetStart.apply {
+        binding.rvPets.apply {
             adapter = petAdapter
             layoutManager = LinearLayoutManager(this@MainActivity)
-            setHasFixedSize(true)
         }
-        attachSwipeToDelete(binding.selectPetStart)
+        attachSwipeToDelete(binding.rvPets)
+
+        // Кнопки добавления питомца
+        val openAddPet = View.OnClickListener {
+            startActivity(Intent(this, AddPetActivity::class.java))
+        }
+        binding.btnAddPet.setOnClickListener(openAddPet)
+        binding.btnEmptyAdd.setOnClickListener(openAddPet)
+
+        // Вход в профиль
+        binding.btnSignIn.setOnClickListener { showSignInMenu() }
 
         lifecycleScope.launch {
             petViewModel.pets.collect { pets ->
@@ -113,6 +123,40 @@ class MainActivity : AppCompatActivity(),
         }
         requestUsers()
         enforceBiometricLock()
+    }
+
+    /** Меню выбора способа входа (VK / Google / Huawei ID). */
+    private fun showSignInMenu() {
+        val popup = android.widget.PopupMenu(this, binding.btnSignIn)
+        popup.menu.add(0, 1, 0, getString(R.string.vk_sign_in))
+        popup.menu.add(0, 2, 1, getString(R.string.google_sign_in))
+        popup.menu.add(0, 3, 2, getString(R.string.huawei_sign_in))
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                1 -> signInWithVk()
+                2 -> signInWith(AuthProviders.google())
+                3 -> signInWithHuawei()
+            }
+            true
+        }
+        popup.show()
+    }
+
+    private fun signInWithVk() {
+        if (VK.isLoggedIn()) {
+            Toast.makeText(this, R.string.vk_already_logged_in, Toast.LENGTH_SHORT).show()
+        } else {
+            vkAuthLauncher.launch(arrayListOf(VKScope.PHOTOS, VKScope.EMAIL, VKScope.PHONE))
+        }
+    }
+
+    private fun signInWithHuawei() {
+        val native = AuthProviders.huaweiNative()
+        if (native.isAvailable(this)) {
+            signInWith(native)
+        } else {
+            signInWith(AuthProviders.huawei())
+        }
     }
 
     /** Запуск входа через выбранного провайдера (Google / Huawei ID). */
@@ -164,12 +208,25 @@ class MainActivity : AppCompatActivity(),
     /** Показывает профиль пользователя в шапке главного экрана. */
     private fun bindProfile(profile: AuthProfile) {
         binding.nameTV.text = profile.name.ifBlank { getString(R.string.defolt_тame) }
+        binding.tvUserSubtitle.text = profile.provider
+            .takeIf { it.isNotBlank() }
+            ?.let { getString(R.string.signed_in_as, providerTitle(it)) }
+            ?: getString(R.string.not_signed_in)
+        binding.btnSignIn.text = getString(R.string.menu_vhod_title)
         val photo = profile.photo()
         if (photo != null) {
-            Picasso.get().load(photo).placeholder(R.drawable.user_placeholder).into(binding.avatarIV)
+            Picasso.get().load(photo).placeholder(R.drawable.ic_person).into(binding.avatarIV)
         } else {
-            binding.avatarIV.setImageResource(R.drawable.user_placeholder)
+            binding.avatarIV.setImageResource(R.drawable.ic_person)
         }
+    }
+
+    /** Название провайдера авторизации для подписи в профиле. */
+    private fun providerTitle(providerId: String): String = when (providerId) {
+        "vk" -> "VK"
+        "google" -> "Google"
+        "huawei" -> "Huawei ID"
+        else -> providerId
     }
 
     /**
@@ -206,13 +263,24 @@ class MainActivity : AppCompatActivity(),
         }
         petAdapter.submitList(filtered)
         visiblePetList = filtered
-        val empty = petList.isEmpty()
-        val noResults = !empty && filtered.isEmpty()
-        binding.tvEmptyState.visibility =
-            if (empty || noResults) View.VISIBLE else View.GONE
-        binding.tvEmptyState.setText(if (empty) R.string.no_pets else R.string.no_search_results)
-        binding.selectPetStart.visibility =
-            if (empty) View.GONE else View.VISIBLE
+
+        val hasPets = petList.isNotEmpty()
+        val noResults = hasPets && filtered.isEmpty()
+
+        binding.rvPets.visibility = if (noResults) View.GONE else View.VISIBLE
+        binding.emptyState.visibility = if (hasPets && !noResults) View.GONE else View.VISIBLE
+
+        if (!hasPets) {
+            binding.tvEmptyTitle.setText(R.string.no_pets_title)
+            binding.tvEmptyText.setText(R.string.no_pets_hint)
+        } else {
+            binding.tvEmptyTitle.setText(R.string.no_search_results_title)
+            binding.tvEmptyText.setText(R.string.no_search_results)
+        }
+
+        // Счётчик питомцев в заголовке раздела
+        binding.tvPetsCount.text = if (hasPets) petList.size.toString() else ""
+        binding.tvPetsCount.visibility = if (hasPets) View.VISIBLE else View.GONE
     }
 
     /** Если включена биометрическая блокировка — требуем подтверждение при каждом входе. */
@@ -441,12 +509,17 @@ class MainActivity : AppCompatActivity(),
         val cachedName = securePrefs.getProfileName()
         if (!cachedName.isNullOrBlank()) {
             binding.nameTV.text = cachedName
+            securePrefs.getProfileProvider()?.let { provider ->
+                binding.tvUserSubtitle.text =
+                    getString(R.string.signed_in_as, providerTitle(provider))
+            }
             securePrefs.getProfilePhoto()?.takeIf { it.isNotBlank() }?.let {
-                Picasso.get().load(it).placeholder(R.drawable.user_placeholder).into(binding.avatarIV)
-            } ?: binding.avatarIV.setImageResource(R.drawable.user_placeholder)
+                Picasso.get().load(it).placeholder(R.drawable.ic_person).into(binding.avatarIV)
+            } ?: binding.avatarIV.setImageResource(R.drawable.ic_person)
         } else {
             binding.nameTV.text = getString(R.string.defolt_тame)
-            binding.avatarIV.setImageResource(R.drawable.user_placeholder)
+            binding.tvUserSubtitle.setText(R.string.not_signed_in)
+            binding.avatarIV.setImageResource(R.drawable.ic_person)
         }
         if (VK.isLoggedIn()) {
             loadVkProfile()

@@ -63,12 +63,18 @@ object HuaweiAuthConfigChecker {
                     if (raw.isBlank()) return@withContext null
                     val inner = runCatching { JSONObject(raw) }.getOrNull() ?: return@withContext null
                     val description = inner.optString("error_description")
+                    val subError = inner.optInt("sub_error")
                     when {
+                        // Блокирующие ошибки: без них авторизация точно не пройдёт
                         description.contains("not registered") ->
                             "Redirect URI не зарегистрирован в AppGallery Connect: $redirectUri"
                         description.contains("invalid redirect_uri") ->
                             "Huawei не принимает такой Redirect URI. Нужен http(s)-адрес, зарегистрированный в AppGallery Connect"
-                        description.isNotBlank() -> description
+                        // Остальные ошибки check-endpoint (например, «invalid request»)
+                        // не блокируют переход: реальная страница авторизации
+                        // отправляет больше параметров и может отработать штатно.
+                        subError == 20022 ->
+                            "Redirect URI отклонён Huawei: $redirectUri"
                         else -> null
                     }
                 } finally {

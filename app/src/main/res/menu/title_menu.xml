@@ -4,13 +4,13 @@
     <item
         android:id="@+id/menu_search"
         android:title="@string/search_pets"
-        android:icon="@android:drawable/ic_menu_search"
+        android:icon="@drawable/ic_search"
         app:showAsAction="ifRoom|collapseActionView"
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
     <item
         android:id="@+id/menu_add_pet"
         android:title="@string/add_pet"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
     <item
         android:id="@+id/menu_vhod"
         android:title="Войти"

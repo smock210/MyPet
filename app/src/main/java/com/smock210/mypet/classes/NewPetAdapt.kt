@@ -27,6 +27,14 @@ class NewPetAdapt(
         val pet = getItem(position)
         holder.largeTextView.text = pet.name ?: "—"
 
+        // Подпись: вид и порода
+        val subtitle = listOf(
+            pet.species.takeIf { it.isNotBlank() },
+            pet.breed.takeIf { it.isNotBlank() }
+        ).filterNotNull().joinToString(" · ")
+        holder.subtitleTextView.text = subtitle
+        holder.subtitleTextView.visibility = if (subtitle.isBlank()) View.GONE else View.VISIBLE
+
         // Фото питомца показываем круглым (CircleImageView), без фото — заглушка «лапка»
         val photoUri = pet.photoUri
         if (photoUri.isNullOrBlank()) {
@@ -44,6 +52,7 @@ class NewPetAdapt(
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
         View.OnClickListener, View.OnLongClickListener {
         val largeTextView: TextView = itemView.findViewById(R.id.label)
+        val subtitleTextView: TextView = itemView.findViewById(R.id.tv_pet_subtitle)
         val smallImageView: ImageView = itemView.findViewById(R.id.imageViewPet)
 
         init {
