@@ -206,7 +206,7 @@
     <!-- Authorization: Huawei ID (AppGallery Connect) -->
     <string name="huawei_client_id" translatable="false"></string>
     <string name="huawei_client_secret" translatable="false"></string>
-    <string name="huawei_redirect_uri" translatable="false">mypet://oauth/huawei</string>
+    <string name="huawei_redirect_uri" translatable="false">http://127.0.0.1:8765/oauth/huawei</string>
     <string name="huawei_authorize_endpoint" translatable="false">https://oauth-login.cloud.huawei.com/oauth2/v3/authorize</string>
     <string name="huawei_token_endpoint" translatable="false">https://oauth-login.cloud.huawei.com/oauth2/v3/token</string>
     <string name="huawei_not_configured">Huawei ID sign-in is not configured: set huawei_client_id and redirect_uri</string>
@@ -232,4 +232,10 @@
     <string name="auth_huawei_client_secret">Huawei ID: Client Secret</string>
     <string name="auth_huawei_redirect_uri">Huawei ID: Redirect URI</string>
     <string name="auth_credentials_saved">Credentials saved</string>
+
+    <string name="huawei_redirect_scheme_error">Redirect URI must start with http:// or https://</string>
+    <string name="huawei_loopback_failed">Could not bind local port %1$d</string>
+    <string name="huawei_no_code">Server did not return an authorization code</string>
+    <string name="huawei_state_mismatch">State mismatch — request rejected</string>
+    <string name="huawei_ags_setup">Set Redirect URL in AppGallery Connect: %1$s\n(client: %2$s)</string>
 </resources>

@@ -206,7 +206,7 @@
     <!-- Авторизация: Huawei ID (AppGallery Connect) -->
     <string name="huawei_client_id" translatable="false"></string>
     <string name="huawei_client_secret" translatable="false"></string>
-    <string name="huawei_redirect_uri" translatable="false">mypet://oauth/huawei</string>
+    <string name="huawei_redirect_uri" translatable="false">http://127.0.0.1:8765/oauth/huawei</string>
     <string name="huawei_authorize_endpoint" translatable="false">https://oauth-login.cloud.huawei.com/oauth2/v3/authorize</string>
     <string name="huawei_token_endpoint" translatable="false">https://oauth-login.cloud.huawei.com/oauth2/v3/token</string>
     <string name="huawei_not_configured">Вход через Huawei ID не настроен: укажите huawei_client_id и redirect_uri</string>
@@ -232,4 +232,10 @@
     <string name="auth_huawei_client_secret">Huawei ID: Client Secret</string>
     <string name="auth_huawei_redirect_uri">Huawei ID: Redirect URI</string>
     <string name="auth_credentials_saved">Учётные данные сохранены</string>
+
+    <string name="huawei_redirect_scheme_error">Redirect URI должен начинаться с http:// или https://</string>
+    <string name="huawei_loopback_failed">Не удалось занять локальный порт %1$d</string>
+    <string name="huawei_no_code">Сервер не вернул код авторизации</string>
+    <string name="huawei_state_mismatch">Не совпал state — запрос отклонён</string>
+    <string name="huawei_ags_setup">В AppGallery Connect укажите Redirect URL: %1$s\n(клиент: %2$s)</string>
 </resources>

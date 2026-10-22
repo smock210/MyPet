@@ -43,23 +43,7 @@
             android:name=".ToolsActivity"
             android:exported="false"
             android:theme="@style/Theme.MyPet.NoActionBar" />
-        <!-- Вход через Huawei ID: приёмник редиректа от браузера -->
-        <activity
-            android:name=".ui.auth.huawei.HuaweiRedirectActivity"
-            android:exported="true"
-            android:launchMode="singleTask"
-            android:theme="@style/Theme.MyPet.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="oauth"
-                    android:scheme="mypet" />
-            </intent-filter>
-        </activity>
+        <!-- Вход через Huawei ID: активность веб-авторизации (loopback-сервер) -->
         <activity
             android:name=".ui.auth.huawei.HuaweiAuthActivity"
             android:exported="false"

@@ -1,6 +1,7 @@
 package com.smock210.mypet.ui.auth
 
 import android.content.Context
+import com.smock210.mypet.BuildConfig
 import com.smock210.mypet.R
 import com.smock210.mypet.security.SecurePreferencesManager
 
@@ -21,6 +22,7 @@ object AuthConfig {
     fun googleWebClientId(context: Context): String {
         val fromPrefs = prefs(context).getGoogleWebClientId()
         return fromPrefs?.takeIf { it.isNotBlank() }
+            ?: BuildConfig.GOOGLE_WEB_CLIENT_ID.takeIf { it.isNotBlank() }
             ?: context.getString(R.string.google_web_client_id)
     }
 
@@ -33,12 +35,14 @@ object AuthConfig {
     fun huaweiClientId(context: Context): String {
         val fromPrefs = prefs(context).getHuaweiClientId()
         return fromPrefs?.takeIf { it.isNotBlank() }
+            ?: BuildConfig.HUAWEI_CLIENT_ID.takeIf { it.isNotBlank() }
             ?: context.getString(R.string.huawei_client_id)
     }
 
     fun huaweiClientSecret(context: Context): String {
         val fromPrefs = prefs(context).getHuaweiClientSecret()
         return fromPrefs?.takeIf { it.isNotBlank() }
+            ?: BuildConfig.HUAWEI_CLIENT_SECRET.takeIf { it.isNotBlank() }
             ?: context.getString(R.string.huawei_client_secret)
     }
 

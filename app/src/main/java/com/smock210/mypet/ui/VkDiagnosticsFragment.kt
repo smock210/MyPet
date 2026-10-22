@@ -198,5 +198,13 @@ class VkDiagnosticsFragment : Fragment() {
                 AuthProviders.recommended(requireContext()).title
             )
         )
+        appendLine()
+        appendLine(
+            getString(
+                R.string.huawei_ags_setup,
+                AuthConfig.huaweiRedirectUri(requireContext()),
+                AuthConfig.huaweiClientId(requireContext()).ifBlank { "—" }
+            )
+        )
     }
 }

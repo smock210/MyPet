@@ -10,7 +10,6 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.lifecycle.lifecycleScope
 import com.smock210.mypet.ui.auth.AuthConfig
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -23,23 +22,27 @@ import java.security.SecureRandom
 import java.util.Base64 as JavaBase64
 
 /**
- * Вход через Huawei ID (OAuth 2.0 / OpenID Connect, web-авторизация).
+ * Вход через Huawei ID (OAuth 2.0 / OpenID Connect, веб-авторизация).
  *
  * Эндпоинты — согласно конфигурации провайдера
  * `https://oauth-login.cloud.huawei.com/.well-known/openid-configuration`:
  * - авторизация: `https://oauth-login.cloud.huawei.com/oauth2/v3/authorize`;
  * - токен: `https://oauth-login.cloud.huawei.com/oauth2/v3/token`
- *   (авторизация `client_secret_post`, поддерживается PKCE S256);
+ *   (`client_secret_post`, поддерживается PKCE S256);
  * - endpoint `userinfo` у Huawei отсутствует, поэтому профиль берётся
- *   из JWT-токена `id_token` (claim'ы: name, picture, email, sub).
+ *   из JWT-токена `id_token` (claim'ы: sub, name, picture, email).
  *
- * Порядок: открываем страницу авторизации в Custom Tab → браузер
- * возвращает код на [HuaweiRedirectActivity] → обмениваем код на токен →
- * разбираем `id_token` и возвращаем профиль вызвавшей активности.
+ * Redirect URI: Huawei отклоняет custom-схемы (`mypet://` → invalid
+ * redirect_uri) и принимает только зарегистрированные в AppGallery Connect
+ * URL. Поэтому приложение поднимает локальный HTTP-сервер на 127.0.0.1
+ * (loopback) и ловит код авторизации на устройстве — внешний сервер не
+ * требуется. В AppGallery Connect нужно указать, например,
+ * `http://localhost:8765/oauth/huawei`.
  */
 class HuaweiAuthActivity : AppCompatActivity() {
 
     private var codeVerifier: String = ""
+    private var loopback: HuaweiLoopbackServer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,12 +54,24 @@ class HuaweiAuthActivity : AppCompatActivity() {
             return
         }
 
+        val redirect = Uri.parse(redirectUri)
+        if (!redirect.scheme.equals("http", ignoreCase = true) && !redirect.scheme.equals("https", ignoreCase = true)) {
+            fail(getString(com.smock210.mypet.R.string.huawei_redirect_scheme_error))
+            return
+        }
+
+        val port = if (redirect.port > 0) redirect.port else DEFAULT_PORT
         val state = randomString(24)
         codeVerifier = randomString(64)
         val codeChallenge = sha256Base64Url(codeVerifier)
 
-        HuaweiOAuthBridge.reset()
-        HuaweiOAuthBridge.expectedState = state
+        val server = HuaweiLoopbackServer(port)
+        loopback = server
+        val started = runCatching { server.start() }.isSuccess
+        if (!started) {
+            fail(getString(com.smock210.mypet.R.string.huawei_loopback_failed, port))
+            return
+        }
 
         val authorizeUrl = buildString {
             append(getString(com.smock210.mypet.R.string.huawei_authorize_endpoint))
@@ -90,25 +105,29 @@ class HuaweiAuthActivity : AppCompatActivity() {
         }
     }
 
-    /** Ждём код авторизации, который пришлёт HuaweiRedirectActivity. */
+    /** Ждём код авторизации, который придёт на локальный сервер. */
     private fun awaitCode(expectedState: String) {
         lifecycleScope.launch {
-            val started = System.currentTimeMillis()
-            while (System.currentTimeMillis() - started < TIMEOUT_MS) {
-                val error = HuaweiOAuthBridge.error
-                if (error != null) {
-                    fail(error)
-                    return@launch
-                }
-                val code = HuaweiOAuthBridge.code
-                if (!code.isNullOrBlank()) {
-                    HuaweiOAuthBridge.code = null
-                    exchangeCode(code)
-                    return@launch
-                }
-                delay(POLL_INTERVAL_MS)
+            val outcome = loopback?.await(TIMEOUT_MS)
+            if (outcome == null) {
+                fail(getString(com.smock210.mypet.R.string.huawei_timeout))
+                return@launch
             }
-            fail(getString(com.smock210.mypet.R.string.huawei_timeout))
+            val error = outcome.error
+            if (!error.isNullOrBlank()) {
+                fail(error)
+                return@launch
+            }
+            val code = outcome.code
+            if (code.isNullOrBlank()) {
+                fail(getString(com.smock210.mypet.R.string.huawei_no_code))
+                return@launch
+            }
+            if (!expectedState.isNullOrBlank() && !outcome.state.isNullOrBlank() && outcome.state != expectedState) {
+                fail(getString(com.smock210.mypet.R.string.huawei_state_mismatch))
+                return@launch
+            }
+            exchangeCode(code)
         }
     }
 
@@ -216,6 +235,12 @@ class HuaweiAuthActivity : AppCompatActivity() {
         finish()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        loopback?.stop()
+        loopback = null
+    }
+
     private fun randomString(length: Int): String {
         val bytes = ByteArray(length)
         SecureRandom().nextBytes(bytes)
@@ -245,8 +270,10 @@ class HuaweiAuthActivity : AppCompatActivity() {
         const val EXTRA_PHOTO = "huawei_photo"
         const val EXTRA_ERROR = "huawei_error"
 
+        /** Порт локального сервера, если он не указан в redirect URI. */
+        const val DEFAULT_PORT = 8765
+
         private const val TAG = "HuaweiAuth"
-        private const val POLL_INTERVAL_MS = 300L
         private const val TIMEOUT_MS = 5 * 60 * 1000L
     }
 }

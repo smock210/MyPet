@@ -441,4 +441,23 @@ P3 (полировка):       0.3/0.4 чистка, 5.2–5.4, 6.1–6.8
 
 **Что осталось от пользователя:** завести приложение в AppGallery Connect → «Huawei ID» → Авторизация через веб, получить Client ID / Client Secret, зарегистрировать Redirect URI `mypet://oauth/huawei` и внести значения на экране «Диагностика входа».
 
+
+### 22.10.2026 — Huawei ID: loopback-редирект (по данным AppGallery Connect)
+
+**Данные из кабинета AppGallery Connect:** имя пакета `smock210.mypet.huawei`, ID приложения/OAuth-клиента `6917565158910974246`, секрет клиента получен.
+
+**Проверка клиента (запросы к `/oauth2/ajax/authorizeConfirm`):**
+- `client_id=6917565158910974246` — **валиден** (ошибка не про client_id);
+- `redirect_uri=mypet://oauth/huawei` → `invalid redirect_uri` (sub_error 20022) — **custom-схемы Huawei не принимает**;
+- `redirect_uri=http://localhost/...`, `https://example.com/...` → `redirect_uri not registered` (sub_error 20023) — формат допустим, но адрес **обязан быть зарегистрирован** в AGC.
+
+**Решение — loopback-паттерн (без внешнего сервера):**
+- `HuaweiLoopbackServer`: приложение поднимает HTTP-сервер на `127.0.0.1:8765` и ловит код авторизации прямо на устройстве; поддержаны и query-параметры, и POST-тело (`response_mode=form_post`);
+- `HuaweiAuthActivity`: вместо custom-схемы используется `redirect_uri=http://127.0.0.1:8765/oauth/huawei` — этот URL нужно один раз указать в AGC («Huawei ID» → Авторизация через веб → Redirect URL);
+- удалены `HuaweiRedirectActivity` и `HuaweiOAuthBridge` (приём редиректа перенесён в локальный сервер);
+- ключи Google/Huawei читаются из `local.properties` (`GOOGLE_WEB_CLIENT_ID`, `HUAWEI_CLIENT_ID`, `HUAWEI_CLIENT_SECRET`) → `BuildConfig` **только для debug**, в release — пусто; в приложении их можно задать и на экране «Диагностика входа» (EncryptedSharedPreferences);
+- `HuaweiLoopbackServerTest` — 3 теста: приём кода из query, из POST-тела, обработка ошибки. Всего 30/30 зелёные.
+
+**Важно:** имя пакета в AGC (`smock210.mypet.huawei`) не совпадает с `applicationId` приложения (`com.smock210.mypet`) — для публикации в AppGallery нужно завести приложение с правильным именем пакета. На веб-авторизацию это не влияет.
+
 **Осталось вне плана (P3):** реальный поиск клиник по Places API (нужен ключ Google), `google-services.json` в `app/` можно удалить (Firebase отключён), CI пока не запускался (нет репозитория на GitHub).
