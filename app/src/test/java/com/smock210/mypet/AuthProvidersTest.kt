@@ -3,6 +3,7 @@ package com.smock210.mypet
 import com.smock210.mypet.ui.auth.AuthProviders
 import com.smock210.mypet.ui.auth.GoogleAuthProvider
 import com.smock210.mypet.ui.auth.HuaweiAuthProvider
+import com.smock210.mypet.ui.auth.HuaweiNativeAuthProvider
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -24,14 +25,38 @@ class AuthProvidersTest {
     }
 
     @Test
-    fun `huawei device falls back to google when huawei is not configured`() {
+    fun `huawei device without native hms uses huawei web flow`() {
         val provider = AuthProviders.chooseProvider(
             isHuaweiDevice = true,
             googleAvailable = true,
             googleConfigured = true,
-            huaweiConfigured = false
+            huaweiConfigured = true
         )
-        assertEquals(GoogleAuthProvider.PROVIDER_ID, provider.id)
+        assertEquals(HuaweiAuthProvider.PROVIDER_ID, provider.id)
+    }
+
+    @Test
+    fun `huawei device with native hms prefers native sign in`() {
+        val provider = AuthProviders.chooseProvider(
+            isHuaweiDevice = true,
+            googleAvailable = false,
+            googleConfigured = false,
+            huaweiConfigured = false,
+            huaweiNativeAvailable = true
+        )
+        assertEquals(HuaweiNativeAuthProvider.PROVIDER_ID, provider.id)
+    }
+
+    @Test
+    fun `device without google services uses native hms when available`() {
+        val provider = AuthProviders.chooseProvider(
+            isHuaweiDevice = false,
+            googleAvailable = false,
+            googleConfigured = true,
+            huaweiConfigured = true,
+            huaweiNativeAvailable = true
+        )
+        assertEquals(HuaweiNativeAuthProvider.PROVIDER_ID, provider.id)
     }
 
     @Test

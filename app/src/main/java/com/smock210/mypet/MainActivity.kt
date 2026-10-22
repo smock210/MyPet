@@ -304,7 +304,13 @@ class MainActivity : AppCompatActivity(),
                 }
             }
             R.id.menu_sign_in_huawei -> {
-                signInWith(AuthProviders.huawei())
+                // На устройствах с HMS Core — нативный вход, иначе — веб-авторизация
+                val native = AuthProviders.huaweiNative()
+                if (native.isAvailable(this)) {
+                    signInWith(native)
+                } else {
+                    signInWith(AuthProviders.huawei())
+                }
             }
             R.id.menu_add_pet -> {
                 val intent = Intent(this, AddPetActivity::class.java)

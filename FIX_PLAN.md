@@ -460,4 +460,26 @@ P3 (полировка):       0.3/0.4 чистка, 5.2–5.4, 6.1–6.8
 
 **Важно:** имя пакета в AGC (`smock210.mypet.huawei`) не совпадает с `applicationId` приложения (`com.smock210.mypet`) — для публикации в AppGallery нужно завести приложение с правильным именем пакета. На веб-авторизацию это не влияет.
 
+
+### 22.10.2026 — Интеграция с HMS: нативный вход через Huawei ID
+
+**Что найдено:** модуль Account Kit (`com.huawei.hms:account`) в зеркале репозитория отсутствует (404), но доступен **`com.huawei.hms:hwid:6.15.0.300`** — нативный модуль входа через Huawei ID (`HuaweiIdAuthManager`, `HuaweiIdAuthParams`, `AuthHuaweiId`). Он содержит и сам `com.huawei.hms.account`, а недостающие классы поддержки (`com.huawei.hms.support.api.entity.auth.Scope`) лежат в `com.huawei.hms:base:6.13.0.304`.
+
+**Особенность сборки:** в этом окружении POM-файлы HMS отдают 404, поэтому репозиторий Huawei подключён с `metadataSources { artifact() }`, а тип артефакта указан явно (`@aar`), транзитивные зависимости прописаны вручную:
+- `com.huawei.hms:hwid:6.15.0.300@aar` — вход через Huawei ID;
+- `com.huawei.hms:base:6.13.0.304@aar` — support API (`Scope`, `AbstractAuthAccount`);
+- `com.huawei.hmf:tasks:1.5.2.301` — `Task` (success/failure listeners).
+
+**Конфигурация AppGallery Connect:**
+- добавлен `app/agconnect-services.json` (client_id `6917565158910974246`, api_key = SHA-256 сертификата подписи, package_name `com.smock210.mypet`);
+- задача `copyAgconnectServices` копирует его в `app/src/main/assets/` (то же делает плагин `com.huawei.agconnect:agcp`, но без него сборка не падает, если файла нет);
+- экран «Диагностика входа» показывает, что именно вписать в AGC: имя пакета, SHA-256 отпечаток сертификата (считается на устройстве), Redirect URL и OAuth Client ID.
+
+**Новый провайдер `HuaweiNativeAuthProvider`:**
+- `HuaweiIdAuthManager.getService(activity, HuaweiIdAuthParams.DEFAULT_AUTH_REQUEST_PARAM)` → `getSignInIntent(requestCode)` → системный экран входа Huawei ID;
+- результат: `HuaweiIdAuthManager.parseAuthResultFromIntent(data)` → `Task<AuthHuaweiId>` → профиль (`getUid`, `getDisplayName`, `getEmail`, `getAvatarUri`);
+- доступен только при установленном HMS Core (`com.huawei.hwid`); при его отсутствии — fallback на веб-авторизацию через loopback.
+
+**Выбор провайдера:** на Huawei/Honor с HMS Core → нативный вход; иначе Google (если есть Play Services) → веб-Huawei → Google. Правило вынесено в чистую функцию `chooseProvider` и покрыто тестами (+2, всего 32/32 зелёные).
+
 **Осталось вне плана (P3):** реальный поиск клиник по Places API (нужен ключ Google), `google-services.json` в `app/` можно удалить (Firebase отключён), CI пока не запускался (нет репозитория на GitHub).

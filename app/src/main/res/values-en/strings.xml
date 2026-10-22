@@ -238,4 +238,9 @@
     <string name="huawei_no_code">Server did not return an authorization code</string>
     <string name="huawei_state_mismatch">State mismatch — request rejected</string>
     <string name="huawei_ags_setup">Set Redirect URL in AppGallery Connect: %1$s\n(client: %2$s)</string>
+
+    <string name="huawei_not_available">Huawei Mobile Services is not available on this device</string>
+    <string name="huawei_native_title">Huawei ID (HMS)</string>
+
+    <string name="huawei_ags_android_setup">In AGC «Android»: package %1$s, SHA-256: %2$s</string>
 </resources>

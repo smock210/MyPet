@@ -68,6 +68,19 @@ android {
     }
 }
 
+// Конфигурация AppGallery Connect: модуль HMS SDK читает её из assets.
+// Файл agconnect-services.json копируется в assets автоматически
+// (аналог того, что делает плагин com.huawei.agconnect:agcp).
+tasks.register('copyAgconnectServices', Copy) {
+    from file('agconnect-services.json')
+    into file('src/main/assets')
+    rename { 'agconnect-services.json' }
+}
+
+tasks.named('preBuild') {
+    dependsOn('copyAgconnectServices')
+}
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
@@ -117,6 +130,13 @@ dependencies {
 
     // Custom Tabs — вход через Huawei ID (OAuth в браузере, FIX_PLAN.md, 6.10)
     implementation 'androidx.browser:browser:1.8.0'
+
+    // HMS SDK — нативный вход через Huawei ID (Account Kit)
+    // Транзитивные зависимости указаны явно: POM-файлы HMS в зеркале
+    // репозитория недоступны, используется разбор только артефактов.
+    implementation 'com.huawei.hms:hwid:6.15.0.300@aar'
+    implementation 'com.huawei.hms:base:6.13.0.304@aar'
+    implementation 'com.huawei.hmf:tasks:1.5.2.301'
 
     // DataStore - обновлено
     implementation 'androidx.datastore:datastore-preferences:1.1.6'

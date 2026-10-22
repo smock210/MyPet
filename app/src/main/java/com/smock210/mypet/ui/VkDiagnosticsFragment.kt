@@ -206,5 +206,28 @@ class VkDiagnosticsFragment : Fragment() {
                 AuthConfig.huaweiClientId(requireContext()).ifBlank { "—" }
             )
         )
+        appendLine(
+            getString(
+                R.string.huawei_ags_android_setup,
+                requireContext().packageName,
+                certificateSha256()
+            )
+        )
+    }
+
+    /** SHA-256 отпечаток сертификата подписи — его нужно внести в AGC. */
+    private fun certificateSha256(): String {
+        val packageName = requireContext().packageName
+        val signature = try {
+            val pm = requireContext().packageManager
+            @Suppress("DEPRECATION")
+            pm.getPackageInfo(packageName, android.content.pm.PackageManager.GET_SIGNATURES)
+                .signatures?.firstOrNull()
+        } catch (e: Exception) {
+            null
+        } ?: return "—"
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(signature.toByteArray())
+        return digest.joinToString(":") { "%02X".format(it) }
     }
 }

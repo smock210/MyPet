@@ -15,23 +15,35 @@ object AuthProviders {
     /** Провайдер «Войти через Google». */
     fun google(): AuthProvider = GoogleAuthProvider()
 
-    /** Провайдер «Войти через Huawei ID». */
+    /** Провайдер «Войти через Huawei ID» (веб-авторизация через браузер). */
     fun huawei(): AuthProvider = HuaweiAuthProvider()
 
     /**
+     * Нативный вход через HMS Account Kit (`com.huawei.hms:hwid`).
+     * Доступен на устройствах с установленным HMS Core.
+     */
+    fun huaweiNative(): AuthProvider = HuaweiNativeAuthProvider()
+
+    /**
      * Рекомендуемый провайдер для текущего устройства.
-     * На Huawei/Honor предпочтение отдаётся Huawei ID, даже если Google
-     * Play Services формально доступны (там их обычно нет).
+     * На Huawei/Honor с установленным HMS Core — нативный вход через
+     * Huawei ID (без браузера); на остальных — Google, если он доступен.
      */
     fun recommended(context: Context): AuthProvider {
-        val huawei = huawei()
+        val native = huaweiNative()
         val google = google()
-        return chooseProvider(
-            isHuaweiDevice = isHuaweiDevice(),
-            googleAvailable = google.isAvailable(context),
-            googleConfigured = google.isConfigured(context),
-            huaweiConfigured = huawei.isConfigured(context)
-        )
+        val huawei = huawei()
+
+        if (isHuaweiDevice()) {
+            if (native.isAvailable(context)) return native
+            if (huawei.isConfigured(context)) return huawei
+            return google
+        }
+        if (google.isAvailable(context) && google.isConfigured(context)) {
+            return google
+        }
+        if (native.isAvailable(context)) return native
+        return if (huawei.isConfigured(context)) huawei else google
     }
 
     /**
@@ -45,10 +57,16 @@ object AuthProviders {
         isHuaweiDevice: Boolean,
         googleAvailable: Boolean,
         googleConfigured: Boolean,
-        huaweiConfigured: Boolean
+        huaweiConfigured: Boolean,
+        huaweiNativeAvailable: Boolean = false
     ): AuthProvider {
-        if (isHuaweiDevice && huaweiConfigured) return huawei()
+        if (isHuaweiDevice) {
+            if (huaweiNativeAvailable) return huaweiNative()
+            if (huaweiConfigured) return huawei()
+            return google()
+        }
         if (googleAvailable && googleConfigured) return google()
+        if (huaweiNativeAvailable) return huaweiNative()
         if (huaweiConfigured) return huawei()
         return google()
     }

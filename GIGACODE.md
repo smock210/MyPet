@@ -56,6 +56,7 @@
 | Корутины (+ play-services) | `1.9.0` / `1.9.0` |
 | Maps / Location | `18.2.0` / `21.3.0` |
 | Google Sign-In / Browser (Custom Tabs) | `play-services-auth:21.1.0` / `browser:1.8.0` |
+| HMS SDK (Huawei ID) | `hwid:6.15.0.300`, `base:6.13.0.304`, `hmf:tasks:1.5.2.301` (репозиторий Huawei, `metadataSources { artifact() }` + явный тип `@aar`) |
 | Локализация | `values` (ru) + `values-en` (en) |
 
 ---
