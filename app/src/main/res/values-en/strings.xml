@@ -254,4 +254,13 @@
     <string name="no_pets_hint">Add your first pet — photos, vaccinations and vet visits will show up here</string>
     <string name="no_search_results_title">Nothing found</string>
     <string name="vk_sign_in">Sign in with VK</string>
+
+    <!-- Pet card -->
+    <string name="notes_label">Notes</string>
+    <string name="photos_label">Photos</string>
+    <string name="weight_label">Weight and chart</string>
+    <string name="pet_weight_chip">%1$s kg</string>
+    <string name="back">Back</string>
+
+    <string name="camera_permission_denied">Camera access is required to record video</string>
 </resources>

@@ -254,4 +254,13 @@
     <string name="no_pets_hint">Добавьте первого питомца — и здесь появятся его фото, прививки и записи к врачу</string>
     <string name="no_search_results_title">Ничего не найдено</string>
     <string name="vk_sign_in">Войти через VK</string>
+
+    <!-- Карточка питомца -->
+    <string name="notes_label">Заметки</string>
+    <string name="photos_label">Фотографии</string>
+    <string name="weight_label">Вес и график</string>
+    <string name="pet_weight_chip">%1$s кг</string>
+    <string name="back">Назад</string>
+
+    <string name="camera_permission_denied">Нужен доступ к камере для записи видео</string>
 </resources>

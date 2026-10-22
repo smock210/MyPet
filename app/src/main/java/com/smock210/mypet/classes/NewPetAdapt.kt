@@ -44,7 +44,6 @@ class NewPetAdapt(
                 .load(photoUri)
                 .placeholder(R.drawable.ic_pet_placeholder)
                 .error(R.drawable.ic_pet_placeholder)
-                .centerCrop()
                 .into(holder.smallImageView)
         }
     }

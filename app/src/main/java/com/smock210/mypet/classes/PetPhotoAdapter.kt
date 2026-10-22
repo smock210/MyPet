@@ -12,6 +12,7 @@ import com.smock210.mypet.R
 import com.smock210.mypet.sqlClass.PetPhoto
 import com.squareup.picasso.Picasso
 
+/** Фотографии питомца в горизонтальной галерее. */
 class PetPhotoAdapter(
     private val onDelete: (PetPhoto) -> Unit,
     private val onSetPrimary: (PetPhoto) -> Unit
@@ -25,8 +26,14 @@ class PetPhotoAdapter(
 
     override fun onBindViewHolder(holder: Vh, position: Int) {
         val item = getItem(position)
-        Picasso.get().load(item.photoUri).into(holder.image)
-        holder.image.alpha = if (item.isPrimary) 1.0f else 0.6f
+        Picasso.get()
+            .load(item.photoUri)
+            .placeholder(R.drawable.ic_pet_placeholder_centered)
+            .error(R.drawable.ic_pet_placeholder_centered)
+            .into(holder.image)
+
+        // Основное фото — с рамкой в цвет темы
+        holder.image.alpha = if (item.isPrimary) 1f else 0.85f
         holder.itemView.setOnClickListener { onSetPrimary(item) }
         holder.delete.setOnClickListener { onDelete(item) }
     }

@@ -1,23 +1,28 @@
 package com.smock210.mypet
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smock210.mypet.classes.PetPhotoAdapter
+import com.smock210.mypet.databinding.ActivityMainDetailBinding
 import com.smock210.mypet.health.HealthActivity
 import com.smock210.mypet.requests.VKWallPostCommand
+import com.smock210.mypet.sqlClass.PetData
 import com.smock210.mypet.utils.ImageStorage
 import com.smock210.mypet.video.VideoRecorderHelper
 import com.squareup.picasso.Picasso
@@ -26,6 +31,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Карточка питомца: фото, основная информация, заметки, галерея и график веса.
+ */
 class MainDetailActivity : AppCompatActivity() {
 
     companion object {
@@ -35,8 +43,10 @@ class MainDetailActivity : AppCompatActivity() {
         const val EXTRA_PET_PHOTO = "pet_photo"
     }
 
+    private lateinit var binding: ActivityMainDetailBinding
     private val viewModel: PetViewModel by viewModels()
     private var petId: Long = 0L
+    private var petName: String = ""
 
     private val pickPhotoLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -61,9 +71,27 @@ class MainDetailActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Разрешение на камеру: приложение объявляет CAMERA в манифесте, поэтому
+     * системная камера откажется запускать видеозапись без выданного
+     * разрешения (SecurityException).
+     */
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            recordVideoLauncher.launch(videoRecorder.createIntent())
+        } else {
+            Toast.makeText(this, R.string.camera_permission_denied, Toast.LENGTH_LONG).show()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main_detail)
+        binding = ActivityMainDetailBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+        binding.toolbar.setNavigationOnClickListener { finish() }
 
         petId = intent.getLongExtra(EXTRA_PET_ID, 0L)
         if (petId == 0L) {
@@ -72,42 +100,77 @@ class MainDetailActivity : AppCompatActivity() {
             finish()
             return
         }
-        val name = intent.getStringExtra(EXTRA_PET_NAME) ?: getString(R.string.pet_generic)
+        petName = intent.getStringExtra(EXTRA_PET_NAME) ?: getString(R.string.pet_generic)
 
         // Данные из intent — мгновенно, затем следим за БД (актуально после редактирования)
-        bindDetail(intent.getStringExtra(EXTRA_PET_NAME), intent.getStringExtra(EXTRA_PET_DETAIL), intent.getStringExtra(EXTRA_PET_PHOTO))
+        bindPet(
+            PetData(
+                id = petId,
+                name = intent.getStringExtra(EXTRA_PET_NAME),
+                smallDetail = intent.getStringExtra(EXTRA_PET_DETAIL),
+                photoUri = intent.getStringExtra(EXTRA_PET_PHOTO)
+            )
+        )
         observePet()
 
-        findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fab).setOnClickListener {
-            finish()
-        }
-
-        findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_health).setOnClickListener {
-            val intent = Intent(this, HealthActivity::class.java).apply {
-                putExtra("pet_id", petId)
-                putExtra("pet_name", name)
-            }
-            startActivity(intent)
-        }
-
-        findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_edit_pet).setOnClickListener {
+        binding.btnHealth.setOnClickListener {
             startActivity(
-                Intent(this, AddPetActivity::class.java)
-                    .putExtra(AddPetActivity.EXTRA_PET_ID, petId)
+                Intent(this, HealthActivity::class.java).apply {
+                    putExtra("pet_id", petId)
+                    putExtra("pet_name", petName)
+                }
             )
         }
 
+        binding.btnAddPhoto.setOnClickListener {
+            pickPhotoLauncher.launch("image/*")
+        }
+
         setupPhotoGallery()
-
-        findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_record_video)
-            .setOnClickListener {
-                recordVideoLauncher.launch(videoRecorder.createIntent())
-            }
-
-        findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_post_vk)
-            .setOnClickListener { postToVk() }
-
         setupWeightSection()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.detail_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_edit_pet -> {
+                startActivity(
+                    Intent(this, AddPetActivity::class.java)
+                        .putExtra(AddPetActivity.EXTRA_PET_ID, petId)
+                )
+                return true
+            }
+            R.id.menu_post_vk -> {
+                postToVk()
+                return true
+            }
+            R.id.menu_record_video -> {
+                startVideoRecording()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    /**
+     * Запуск записи видео: сначала проверяем runtime-разрешение на камеру
+     * (иначе система выбросит SecurityException), затем открываем камеру.
+     */
+    private fun startVideoRecording() {
+        val granted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (granted) {
+            recordVideoLauncher.launch(videoRecorder.createIntent())
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
     }
 
     /**
@@ -124,8 +187,8 @@ class MainDetailActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.vk_no_photo, Toast.LENGTH_LONG).show()
             return
         }
-        val petName = viewModel.editedPet.value?.name ?: ""
-        val message = getString(R.string.vk_post_message, petName)
+        val name = viewModel.editedPet.value?.name ?: ""
+        val message = getString(R.string.vk_post_message, name)
 
         // Фото хранится путём к файлу в приватном хранилище — для загрузки
         // в VK нужен file:// Uri
@@ -156,37 +219,35 @@ class MainDetailActivity : AppCompatActivity() {
 
     /** История взвешиваний и график (FIX_PLAN.md, 6.1). */
     private fun setupWeightSection() {
-        val chart = findViewById<com.smock210.mypet.ui.WeightChartView>(R.id.weight_chart)
         viewModel.loadWeights(petId)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.weights.collect { chart.submit(it) }
+                viewModel.weights.collect { binding.weightChart.submit(it) }
             }
         }
 
-        findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_add_weight)
-            .setOnClickListener {
-                val input = android.widget.EditText(this).apply {
-                    hint = getString(R.string.weight_kg_hint)
-                    inputType = android.text.InputType.TYPE_CLASS_NUMBER or
-                        android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-                    setPadding(48, 32, 48, 32)
-                }
-                com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                    .setTitle(R.string.add_weight)
-                    .setView(input)
-                    .setPositiveButton(R.string.save) { _, _ ->
-                        val kg = input.text.toString().toDoubleOrNull()
-                        if (kg == null || kg <= 0 || kg > 500) {
-                            Toast.makeText(this, R.string.weight_invalid, Toast.LENGTH_SHORT).show()
-                        } else {
-                            viewModel.addWeight(petId, kg)
-                            Toast.makeText(this, R.string.weight_added, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                    .setNegativeButton(R.string.cancel, null)
-                    .show()
+        binding.btnAddWeight.setOnClickListener {
+            val input = EditText(this).apply {
+                hint = getString(R.string.weight_kg_hint)
+                inputType = android.text.InputType.TYPE_CLASS_NUMBER or
+                    android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+                setPadding(48, 32, 48, 32)
             }
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.add_weight)
+                .setView(input)
+                .setPositiveButton(R.string.save) { _, _ ->
+                    val kg = input.text.toString().toDoubleOrNull()
+                    if (kg == null || kg <= 0 || kg > 500) {
+                        Toast.makeText(this, R.string.weight_invalid, Toast.LENGTH_SHORT).show()
+                    } else {
+                        viewModel.addWeight(petId, kg)
+                        Toast.makeText(this, R.string.weight_added, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
     }
 
     private fun setupPhotoGallery() {
@@ -197,26 +258,30 @@ class MainDetailActivity : AppCompatActivity() {
             },
             onSetPrimary = { photo ->
                 viewModel.setPrimaryPhoto(photo)
-                viewModel.updatePet(
-                    (viewModel.editedPet.value ?: return@PetPhotoAdapter).copy(photoUri = photo.photoUri)
-                )
+                viewModel.editedPet.value?.let { pet ->
+                    viewModel.updatePet(pet.copy(photoUri = photo.photoUri))
+                }
                 Toast.makeText(this, R.string.photo_is_primary, Toast.LENGTH_SHORT).show()
             }
         )
-        findViewById<RecyclerView>(R.id.rv_photos).apply {
-            layoutManager = LinearLayoutManager(this@MainDetailActivity, RecyclerView.HORIZONTAL, false)
+        binding.rvPhotos.apply {
+            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(
+                this@MainDetailActivity,
+                androidx.recyclerview.widget.RecyclerView.HORIZONTAL,
+                false
+            )
             adapter = photoAdapter
         }
-        findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_add_photo)
-            .setOnClickListener {
-                pickPhotoLauncher.launch("image/*")
-            }
 
         viewModel.loadPhotos(petId)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.photos.collect { photos ->
                     photoAdapter.submitList(photos)
+                    binding.tvPhotosEmpty.visibility =
+                        if (photos.isEmpty()) View.VISIBLE else View.GONE
+                    binding.rvPhotos.visibility =
+                        if (photos.isEmpty()) View.GONE else View.VISIBLE
                 }
             }
         }
@@ -228,21 +293,62 @@ class MainDetailActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.editedPet.collect { pet ->
                     pet ?: return@collect
-                    bindDetail(pet.name, pet.smallDetail, pet.photoUri)
+                    bindPet(pet)
                 }
             }
         }
     }
 
-    private fun bindDetail(name: String?, detail: String?, photoUri: String?) {
-        findViewById<TextView>(R.id.tv_pet_name).text = name ?: getString(R.string.pet_generic)
-        findViewById<TextView>(R.id.tv_pet_detail).text = detail ?: getString(R.string.no_notes)
+    /** Выводит данные питомца в карточку. */
+    private fun bindPet(pet: PetData) {
+        val name = pet.name ?: getString(R.string.pet_generic)
+        binding.tvPetName.text = name
+        binding.toolbar.title = name
+        petName = name
 
-        val avatar = findViewById<ImageView>(R.id.iv_pet_avatar)
+        // Подпись: вид и порода
+        val subtitle = listOf(
+            pet.species.takeIf { it.isNotBlank() },
+            pet.breed.takeIf { it.isNotBlank() }
+        ).filterNotNull().joinToString(" · ")
+        binding.tvPetSubtitle.text = subtitle
+        binding.tvPetSubtitle.visibility = if (subtitle.isBlank()) View.GONE else View.VISIBLE
+
+        // Чипы: возраст и вес
+        binding.chipAge.text = ageLabel(pet.ageYears)
+        binding.chipAge.visibility = if (pet.ageYears > 0) View.VISIBLE else View.GONE
+        binding.chipWeight.text = getString(
+            R.string.pet_weight_chip,
+            String.format(java.util.Locale.getDefault(), "%.1f", pet.weightKg)
+        )
+        binding.chipWeight.visibility = if (pet.weightKg > 0) View.VISIBLE else View.GONE
+
+        binding.tvPetDetail.text = pet.smallDetail ?: getString(R.string.no_notes)
+
+        val photoUri = pet.photoUri
         if (!photoUri.isNullOrBlank()) {
-            Picasso.get().load(photoUri).into(avatar)
+            Picasso.get()
+                .load(photoUri)
+                .placeholder(R.drawable.ic_pet_placeholder)
+                .error(R.drawable.ic_pet_placeholder)
+                .into(binding.ivPetAvatar)
+            binding.ivPetPlaceholder.visibility = View.GONE
         } else {
-            avatar.setImageResource(R.drawable.ic_launcher_foreground)
+            binding.ivPetAvatar.setImageDrawable(null)
+            binding.ivPetPlaceholder.visibility = View.VISIBLE
         }
+    }
+
+    /** «1 год», «2 года», «5 лет» — правильные склонения. */
+    private fun ageLabel(years: Int): String {
+        val mod100 = years % 100
+        val mod10 = years % 10
+        val word = when {
+            mod100 in 11..14 -> "лет"
+            mod10 == 1 -> "год"
+            mod10 in 2..4 -> "года"
+            else -> "лет"
+        }
+        return "$years $word"
     }
 }
