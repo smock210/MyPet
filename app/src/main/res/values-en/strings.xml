@@ -174,7 +174,7 @@
     <string name="kg_unit">kg</string>
     <string name="feeding_result">🍽️ Portion: %1$s g/meal (2 meals/day)\n📊 Daily portion: %2$s g\n🐕 By age: %3$s g\n🔥 Calories: %4$s kcal</string>
 
-    <string name="vk_diagnostics_title">VK authorization diagnostics</string>
+    <string name="vk_diagnostics_title">Sign-in diagnostics</string>
     <string name="vk_diag_app_id">App ID: %1$s</string>
     <string name="vk_diag_package">Package: %1$s</string>
     <string name="vk_diag_fingerprints">Signing certificate SHA-1:</string>
@@ -183,7 +183,7 @@
     <string name="vk_diag_logged_in">logged in</string>
     <string name="vk_diag_not_logged_in">not logged in</string>
     <string name="vk_diag_hint">In the VK app settings (vk.com/apps?act=manage) set: Standalone type, package name as “Android package name”, the SHA-1 above as “Android certificate fingerprint”, and activity com.smock210.mypet.MainActivity. If the app is in development mode, add the test account as a developer.</string>
-    <string name="vk_diagnostics_title_menu">VK diagnostics</string>
+    <string name="vk_diagnostics_title_menu">Sign-in diagnostics</string>
     <string name="vk_login_failed_reason">VK login failed: %1$s</string>
 
     <string name="vk_diag_remote_title">VK app settings:</string>
@@ -195,4 +195,35 @@
 
     <string name="pet_photo">Pet photo</string>
     <string name="user_photo">User photo</string>
+
+    <!-- Authorization: Google -->
+    <!-- OAuth client of type "Web application" from Google Cloud Console -->
+    <string name="google_web_client_id" translatable="false"></string>
+    <string name="google_not_configured">Google sign-in is not configured: set google_web_client_id</string>
+    <string name="google_not_available">Google Play Services is not available on this device</string>
+    <string name="google_sign_in">Sign in with Google</string>
+
+    <!-- Authorization: Huawei ID (AppGallery Connect) -->
+    <string name="huawei_client_id" translatable="false"></string>
+    <string name="huawei_client_secret" translatable="false"></string>
+    <string name="huawei_redirect_uri" translatable="false">mypet://oauth/huawei</string>
+    <string name="huawei_authorize_endpoint" translatable="false">https://oauth.huawei.com/oauth2/v3/authorize</string>
+    <string name="huawei_token_endpoint" translatable="false">https://oauth.huawei.com/oauth2/v3/token</string>
+    <string name="huawei_userinfo_endpoint" translatable="false">https://oauth.huawei.com/oauth2/v3/userinfo</string>
+    <string name="huawei_not_configured">Huawei ID sign-in is not configured: set huawei_client_id and redirect_uri</string>
+    <string name="huawei_sign_in">Sign in with Huawei ID</string>
+    <string name="huawei_auth_failed">Huawei ID sign-in failed</string>
+    <string name="huawei_no_browser">No browser found for authorization</string>
+    <string name="huawei_timeout">Authorization timed out</string>
+    <string name="auth_login_failed">Sign-in failed: %1$s</string>
+    <string name="auth_recommended_provider">Recommended sign-in method: %1$s</string>
+
+    <string name="menu_vhod_title">Sign in</string>
+
+    <string name="auth_diag_title">Sign-in methods:</string>
+    <string name="auth_diag_google_available">Google Play Services available: %1$s</string>
+    <string name="auth_diag_google_configured">Google configured (client id): %1$s</string>
+    <string name="auth_diag_huawei_configured">Huawei ID configured (client id): %1$s</string>
+    <string name="auth_diag_huawei_device">Huawei/Honor device: %1$s</string>
+    <string name="auth_diag_hms">HMS Core installed: %1$s</string>
 </resources>

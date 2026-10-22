@@ -174,7 +174,7 @@
     <string name="kg_unit">кг</string>
     <string name="feeding_result">🍽️ Порция: %1$s г/приём (2 раза/день)\n📊 Дневная порция: %2$s г\n🐕 По возрасту: %3$s г\n🔥 Калории: %4$s ккал</string>
 
-    <string name="vk_diagnostics_title">Диагностика авторизации VK</string>
+    <string name="vk_diagnostics_title">Диагностика входа</string>
     <string name="vk_diag_app_id">App ID: %1$s</string>
     <string name="vk_diag_package">Пакет: %1$s</string>
     <string name="vk_diag_fingerprints">SHA-1 отпечатки подписи:</string>
@@ -183,7 +183,7 @@
     <string name="vk_diag_logged_in">выполнен вход</string>
     <string name="vk_diag_not_logged_in">не выполнен вход</string>
     <string name="vk_diag_hint">В настройках приложения VK (vk.com/apps?act=manage) укажите: тип Standalone, имя пакета как «Имя пакета для Android», SHA-1 отпечаток выше — в «Сертификат для Android», и activity com.smock210.mypet.MainActivity. Если приложение в режиме разработки — добавьте тестовый аккаунт в «Разработчики».</string>
-    <string name="vk_diagnostics_title_menu">Диагностика VK</string>
+    <string name="vk_diagnostics_title_menu">Диагностика входа</string>
     <string name="vk_login_failed_reason">Не удалось войти через VK: %1$s</string>
 
     <string name="vk_diag_remote_title">Настройки приложения в кабинете VK:</string>
@@ -195,4 +195,35 @@
 
     <string name="pet_photo">Фото питомца</string>
     <string name="user_photo">Фото пользователя</string>
+
+    <!-- Авторизация: Google -->
+    <!-- OAuth-клиент типа «Веб-приложение» из Google Cloud Console -->
+    <string name="google_web_client_id" translatable="false"></string>
+    <string name="google_not_configured">Вход через Google не настроен: укажите google_web_client_id</string>
+    <string name="google_not_available">На устройстве нет Google Play Services</string>
+    <string name="google_sign_in">Войти через Google</string>
+
+    <!-- Авторизация: Huawei ID (AppGallery Connect) -->
+    <string name="huawei_client_id" translatable="false"></string>
+    <string name="huawei_client_secret" translatable="false"></string>
+    <string name="huawei_redirect_uri" translatable="false">mypet://oauth/huawei</string>
+    <string name="huawei_authorize_endpoint" translatable="false">https://oauth.huawei.com/oauth2/v3/authorize</string>
+    <string name="huawei_token_endpoint" translatable="false">https://oauth.huawei.com/oauth2/v3/token</string>
+    <string name="huawei_userinfo_endpoint" translatable="false">https://oauth.huawei.com/oauth2/v3/userinfo</string>
+    <string name="huawei_not_configured">Вход через Huawei ID не настроен: укажите huawei_client_id и redirect_uri</string>
+    <string name="huawei_sign_in">Войти через Huawei ID</string>
+    <string name="huawei_auth_failed">Не удалось войти через Huawei ID</string>
+    <string name="huawei_no_browser">Не найден браузер для авторизации</string>
+    <string name="huawei_timeout">Время ожидания авторизации истекло</string>
+    <string name="auth_login_failed">Не удалось войти: %1$s</string>
+    <string name="auth_recommended_provider">Рекомендуемый способ входа: %1$s</string>
+
+    <string name="menu_vhod_title">Войти</string>
+
+    <string name="auth_diag_title">Способы входа:</string>
+    <string name="auth_diag_google_available">Google Play Services доступен: %1$s</string>
+    <string name="auth_diag_google_configured">Google настроен (client id): %1$s</string>
+    <string name="auth_diag_huawei_configured">Huawei ID настроен (client id): %1$s</string>
+    <string name="auth_diag_huawei_device">Устройство Huawei/Honor: %1$s</string>
+    <string name="auth_diag_hms">HMS Core установлен: %1$s</string>
 </resources>

@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textview.MaterialTextView
 import com.smock210.mypet.R
 import com.smock210.mypet.utils.VkAppConfigChecker
+import com.smock210.mypet.ui.auth.AuthProviders
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.utils.VKUtils
 import kotlinx.coroutines.launch
@@ -46,12 +47,14 @@ class VkDiagnosticsFragment : Fragment() {
                 .orEmpty()
         }.getOrDefault(emptyList())
 
-        textView.text = buildLocalReport(appId, packageName, fingerprints)
+        textView.text = buildLocalReport(appId, packageName, fingerprints) +
+                "\n\n" + buildProvidersReport()
 
         // Проверяем настройки приложения в кабинете VK через сервисный ключ
         viewLifecycleOwner.lifecycleScope.launch {
             val config = VkAppConfigChecker.check(appId.toLong())
             textView.text = buildLocalReport(appId, packageName, fingerprints) +
+                    "\n\n" + buildProvidersReport() +
                     "\n\n" + buildRemoteReport(config)
         }
     }
@@ -103,5 +106,50 @@ class VkDiagnosticsFragment : Fragment() {
         }
         appendLine()
         appendLine(getString(R.string.vk_diag_hint))
+    }
+
+    /** Сведения о Google/Huawei-авторизации и о том, что доступно на устройстве. */
+    private fun buildProvidersReport(): String = buildString {
+        val google = AuthProviders.google()
+        val huawei = AuthProviders.huawei()
+
+        appendLine(getString(R.string.auth_diag_title))
+        appendLine(
+            getString(
+                R.string.auth_diag_google_available,
+                if (google.isAvailable(requireContext())) "да" else "нет"
+            )
+        )
+        appendLine(
+            getString(
+                R.string.auth_diag_google_configured,
+                if (google.isConfigured(requireContext())) "да" else "нет"
+            )
+        )
+        appendLine(
+            getString(
+                R.string.auth_diag_huawei_configured,
+                if (huawei.isConfigured(requireContext())) "да" else "нет"
+            )
+        )
+        appendLine(
+            getString(
+                R.string.auth_diag_huawei_device,
+                if (AuthProviders.isHuaweiDevice()) "да" else "нет"
+            )
+        )
+        appendLine(
+            getString(
+                R.string.auth_diag_hms,
+                if (AuthProviders.isHmsAvailable(requireContext())) "да" else "нет"
+            )
+        )
+        appendLine()
+        appendLine(
+            getString(
+                R.string.auth_recommended_provider,
+                AuthProviders.recommended(requireContext()).title
+            )
+        )
     }
 }

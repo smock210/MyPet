@@ -56,11 +56,26 @@ class SecurePreferencesManager(context: Context) {
 
     fun getProfilePhoto(): String? = sp.getString(KEY_PROFILE_PHOTO, null)
 
+    /** Провайдер авторизации, под которым вошли (vk / google / huawei). */
+    fun saveProfileProvider(provider: String) {
+        sp.edit().putString(KEY_PROFILE_PROVIDER, provider).apply()
+    }
+
+    fun getProfileProvider(): String? = sp.getString(KEY_PROFILE_PROVIDER, null)
+
+    fun saveProfileEmail(email: String) {
+        sp.edit().putString(KEY_PROFILE_EMAIL, email).apply()
+    }
+
+    fun getProfileEmail(): String? = sp.getString(KEY_PROFILE_EMAIL, null)
+
     companion object {
         private const val PREFS_NAME = "secure_vk_prefs"
         private const val KEY_VK_TOKEN = "vk_token"
         private const val KEY_VK_USER_ID = "vk_user_id"
         private const val KEY_PROFILE_NAME = "profile_name"
         private const val KEY_PROFILE_PHOTO = "profile_photo"
+        private const val KEY_PROFILE_PROVIDER = "profile_provider"
+        private const val KEY_PROFILE_EMAIL = "profile_email"
     }
 }

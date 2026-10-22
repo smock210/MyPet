@@ -381,4 +381,39 @@ P3 (полировка):       0.3/0.4 чистка, 5.2–5.4, 6.1–6.8
 
 **Проверки:** `./gradlew assembleDebug testDebugUnitTest` ✅ (21/21).
 
+
+### 21.10.2026 — Круглые фото питомцев на главном экране
+
+**Проблема:** в списке питомцев на главном экране квадратная иконка без фото (загружалась иконка лаунчера), имя питомца выводилось на «бирюзовой плашке» высотой 115 dp, а при клике/долгом клике фон элемента заливался чёрным/серым.
+
+**Изменения:**
+- `list_row.xml`: `ImageView` → `CircleImageView` (48 dp, `centerCrop`, бирюзовая рамка 2 dp, круглая подложка) + нормальный `TextView` с именем (без плашки, `ellipsize`, `?android:attr/textColorPrimary` вместо чёрного — иначе не видно в тёмной теме);
+- `NewPetAdapt`: теперь реально грузится **фото питомца** (`pet.photoUri`) через Picasso; без фото — новая заглушка-отпечаток лапки `drawable/ic_pet_placeholder.xml`; убрана заливка фона при клике/долгом клике (остался ripple `?attr/selectableItemBackground`);
+- `activity_main_start.xml`: аватар пользователя в шапке — тоже `CircleImageView`; список расширен до 180 dp, чтобы имя не обрезалось;
+- **Постоянные фото:** добавлен `utils/ImageStorage` — выбранные через Photo Picker снимки копируются в приватное хранилище (`filesDir/photos`), в БД пишется путь к файлу. Раньше сохранялся временный `content://` URI, доступ к которому теряется после перезапуска приложения — фото «исчезали»;
+- `PetViewModel.migrateLegacyPhotoUris()` — при старте ранее сохранённые `content://` ссылки автоматически переносятся в приватное хранилище, поэтому старые фото продолжают работать;
+- `MainDetailActivity`: при публикации в VK путь к файлу преобразуется в `file://` Uri.
+
+**Проверки:** `./gradlew assembleDebug testDebugUnitTest` ✅ (21/21).
+
+
+### 22.10.2026 — Вход через Google и Huawei ID (в зависимости от устройства)
+
+**Что сделано:**
+- Новый пакет `ui/auth`: единая абстракция провайдера авторизации (`AuthProvider`, `AuthProfile`, `AuthResult`) — VK, Google и Huawei ID используют одну модель профиля и один код показа в шапке;
+- `GoogleAuthProvider` — Google Sign-In (`play-services-auth:21.1.1`): проверка доступности Google Play Services и наличие `google_web_client_id` **до** запуска входа (иначе Google отвечает ошибкой 10);
+- `HuaweiAuthProvider` — вход через **Huawei ID по web-авторизации (OAuth 2.0 / OIDC)** в браузере: открывается Custom Tab → редирект на custom-схему `mypet://oauth/huawei` → обмен кода на токен → запрос профиля. Реализация без HMS SDK: работает на любых устройствах, включая Huawei/Honor без Google Play Services, и не требует `agconnect-services.json`;
+- `AuthProviders.chooseProvider(...)` — правило выбора: устройство Huawei/Honor → Huawei ID, иначе при доступных Play Services → Google, иначе → настроенный провайдер;
+- В меню добавлены пункты «Войти через Google» и «Войти через Huawei ID»; при первом запуске показывается Snackbar с рекомендуемым для устройства способом входа и кнопкой «Войти»;
+- Экран «Диагностика входа» (бывший «Диагностика VK») показывает: доступность Google Play Services, настроен ли `google_web_client_id`, настроен ли `huawei_client_id`, устройство ли это Huawei/Honor, установлен ли HMS Core и какой провайдер рекомендован;
+- Профиль пользователя (имя, e-mail, фото, провайдер) кэшируется в EncryptedSharedPreferences независимо от способа входа.
+
+**Почему без HMS SDK:** артефакты `com.huawei.hms:account`/`core` недоступны в зеркале репозиториев окружения (404), а web-авторизация не требует ни SDK, ни agconnect-конфига. Если позже понадобится HMS Account Kit — зависимость добавляется в `app/build.gradle` (репозиторий `https://developer.huawei.com/repo/`) и плагин `com.huawei.agconnect:agcp`.
+
+**Что необходимо настроить пользователю:**
+- **Google:** Google Cloud Console → OAuth client ID типа «Веб-приложение» → значение в `R.string.google_web_client_id` (`app/src/main/res/values/strings.xml`);
+- **Huawei:** AppGallery Connect → Мои приложения → Huawei ID → Авторизация через веб → Client ID, Client Secret и Redirect URI (`mypet://oauth/huawei`) → значения в `R.string.huawei_client_id` / `huawei_client_secret` / `huawei_redirect_uri`.
+
+**Тесты:** `AuthProvidersTest` — 6 тестов на правило выбора провайдера. Всего 27/27 зелёные.
+
 **Осталось вне плана (P3):** реальный поиск клиник по Places API (нужен ключ Google), `google-services.json` в `app/` можно удалить (Firebase отключён), CI пока не запускался (нет репозитория на GitHub).

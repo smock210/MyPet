@@ -16,6 +16,14 @@
         android:title="Войти"
         app:showAsAction="never" />
     <item
+        android:id="@+id/menu_sign_in_google"
+        android:title="@string/google_sign_in"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_sign_in_huawei"
+        android:title="@string/huawei_sign_in"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/menu_registr"
         android:title="Зарегистрироваться"
         app:showAsAction="never" />

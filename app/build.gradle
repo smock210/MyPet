@@ -101,7 +101,13 @@ dependencies {
     // Firebase — отключён: выбран вход через VK (FIX_PLAN.md, 5.3)
     // implementation platform('com.google.firebase:firebase-bom:33.7.0')
     // implementation 'com.google.firebase:firebase-auth-ktx'
-    // implementation 'com.google.android.gms:play-services-auth:21.1.1'
+
+    // Google Sign-In (вход через Google, FIX_PLAN.md, 6.10)
+    implementation 'com.google.android.gms:play-services-auth:21.1.1'
+    implementation 'com.google.android.gms:play-services-base:18.5.0'
+
+    // Custom Tabs — вход через Huawei ID (OAuth в браузере, FIX_PLAN.md, 6.10)
+    implementation 'androidx.browser:browser:1.8.0'
 
     // DataStore - обновлено
     implementation 'androidx.datastore:datastore-preferences:1.1.6'

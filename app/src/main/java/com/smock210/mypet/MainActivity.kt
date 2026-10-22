@@ -7,6 +7,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -22,6 +23,10 @@ import com.smock210.mypet.security.BiometricAuthHelper
 import com.smock210.mypet.security.DataStoreProvider
 import com.smock210.mypet.security.SecurePreferencesManager
 import com.smock210.mypet.sqlClass.PetData
+import com.smock210.mypet.ui.auth.AuthProfile
+import com.smock210.mypet.ui.auth.AuthProviders
+import com.smock210.mypet.ui.auth.AuthProvider
+import com.smock210.mypet.ui.auth.AuthResult
 import com.smock210.mypet.viewmodel.PetViewModel
 import com.squareup.picasso.Picasso
 import com.vk.api.sdk.VK
@@ -48,6 +53,9 @@ class MainActivity : AppCompatActivity(),
 
     private val biometricHelper = BiometricAuthHelper()
 
+    /** Провайдер, для которого сейчас выполняется вход. */
+    private var activeProvider: AuthProvider? = null
+
     private val vkAuthLauncher = VK.login(this) { result ->
         when (result) {
             is VKAuthenticationResult.Success -> loadVkProfile()
@@ -65,6 +73,14 @@ class MainActivity : AppCompatActivity(),
                 ).show()
             }
         }
+    }
+
+    /** Результат входа через Google / Huawei ID. */
+    private val authLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val provider = activeProvider ?: return@registerForActivityResult
+        provider.handleActivityResult(result) { authResult -> onAuthResult(authResult) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,6 +112,60 @@ class MainActivity : AppCompatActivity(),
         }
         requestUsers()
         enforceBiometricLock()
+    }
+
+    /** Запуск входа через выбранного провайдера (Google / Huawei ID). */
+    private fun signInWith(provider: AuthProvider) {
+        activeProvider = provider
+        provider.signIn(this, authLauncher) { result -> onAuthResult(result) }
+    }
+
+    /** Обработка результата входа через Google / Huawei ID. */
+    private fun onAuthResult(result: AuthResult) {
+        when (result) {
+            is AuthResult.Success -> {
+                bindProfile(result.profile)
+                lifecycleScope.launch(Dispatchers.IO) {
+                    securePrefs.saveProfileProvider(result.profile.provider)
+                    securePrefs.saveProfileName(result.profile.name)
+                    securePrefs.saveProfilePhoto(result.profile.photoUrl.orEmpty())
+                    securePrefs.saveProfileEmail(result.profile.email.orEmpty())
+                }
+            }
+            is AuthResult.Error ->
+                Toast.makeText(this, getString(R.string.auth_login_failed, result.message), Toast.LENGTH_LONG).show()
+            AuthResult.Cancelled -> Unit
+        }
+    }
+
+    /** Показывает профиль пользователя в шапке главного экрана. */
+    private fun bindProfile(profile: AuthProfile) {
+        binding.nameTV.text = profile.name.ifBlank { getString(R.string.defolt_тame) }
+        val photo = profile.photo()
+        if (photo != null) {
+            Picasso.get().load(photo).placeholder(R.drawable.user_placeholder).into(binding.avatarIV)
+        } else {
+            binding.avatarIV.setImageResource(R.drawable.user_placeholder)
+        }
+    }
+
+    /**
+     * Подсказывает рекомендуемый способ входа в зависимости от устройства:
+     * на Huawei/Honor без Google Play Services — Huawei ID, иначе — Google.
+     */
+    private fun suggestRecommendedProvider() {
+        if (!securePrefs.getProfileName().isNullOrBlank()) return
+
+        val provider = AuthProviders.recommended(this)
+        if (!provider.isConfigured(this)) return
+
+        Snackbar.make(
+            binding.root,
+            getString(R.string.auth_recommended_provider, provider.title),
+            Snackbar.LENGTH_LONG
+        ).setAction(R.string.menu_vhod_title) {
+            signInWith(provider)
+        }.show()
     }
 
     /** Фильтрует список по [searchQuery] (кличка/порода/заметка) — FIX_PLAN.md, 6.2. */
@@ -225,6 +295,17 @@ class MainActivity : AppCompatActivity(),
                     vkAuthLauncher.launch(arrayListOf(VKScope.PHOTOS, VKScope.EMAIL, VKScope.PHONE))
                 }
             }
+            R.id.menu_sign_in_google -> {
+                val provider = AuthProviders.google()
+                if (!provider.isAvailable(this)) {
+                    Toast.makeText(this, R.string.google_not_available, Toast.LENGTH_LONG).show()
+                } else {
+                    signInWith(provider)
+                }
+            }
+            R.id.menu_sign_in_huawei -> {
+                signInWith(AuthProviders.huawei())
+            }
             R.id.menu_add_pet -> {
                 val intent = Intent(this, AddPetActivity::class.java)
                 startActivity(intent)
@@ -332,7 +413,7 @@ class MainActivity : AppCompatActivity(),
         if (!cachedName.isNullOrBlank()) {
             binding.nameTV.text = cachedName
             securePrefs.getProfilePhoto()?.takeIf { it.isNotBlank() }?.let {
-                Picasso.get().load(it).into(binding.avatarIV)
+                Picasso.get().load(it).placeholder(R.drawable.user_placeholder).into(binding.avatarIV)
             } ?: binding.avatarIV.setImageResource(R.drawable.user_placeholder)
         } else {
             binding.nameTV.text = getString(R.string.defolt_тame)
@@ -341,6 +422,7 @@ class MainActivity : AppCompatActivity(),
         if (VK.isLoggedIn()) {
             loadVkProfile()
         }
+        suggestRecommendedProvider()
     }
 
     /** Загружает профиль пользователя VK и показывает имя/аватар в шапке. */
@@ -362,14 +444,17 @@ class MainActivity : AppCompatActivity(),
             return
         }
         val fullName = "${user.firstName} ${user.lastName}".trim()
-        binding.nameTV.text = fullName
-        if (user.photo.isNotBlank()) {
-            Picasso.get().load(user.photo).into(binding.avatarIV)
-        } else {
-            binding.avatarIV.setImageResource(R.drawable.user_placeholder)
-        }
+        bindProfile(
+            AuthProfile(
+                provider = "vk",
+                id = user.id.toString(),
+                name = fullName,
+                photoUrl = user.photo
+            )
+        )
         // Кэш в EncryptedSharedPreferences (FIX_PLAN.md, 4.2)
         withContext(Dispatchers.IO) {
+            securePrefs.saveProfileProvider("vk")
             securePrefs.saveProfileName(fullName)
             securePrefs.saveProfilePhoto(user.photo)
             securePrefs.saveUserId(user.id)
