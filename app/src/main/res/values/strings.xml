@@ -271,4 +271,56 @@
     <string name="maps_phone_template">Телефон: %1$s</string>
 
     <string name="maps_key_missing">Карта недоступна: не задан API-ключ Яндекс.Карт</string>
+
+    <!-- Auth API: тексты ошибок (AUTH_API.md, раздел 2.13) -->
+    <string name="auth_err_no_connection">Нет соединения с сервером</string>
+    <string name="auth_err_throttled">Слишком много попыток, попробуйте позже</string>
+    <string name="auth_err_throttled_retry">Слишком много попыток, попробуйте через %1$d с</string>
+    <string name="auth_err_server">Сервис недоступен, попробуйте позже</string>
+    <string name="auth_err_unknown">Не удалось выполнить запрос</string>
+    <string name="auth_session_expired">Сессия истекла — войдите заново</string>
+    <string name="auth_google_disabled">Вход через Google пока недоступен: не задан Web Client ID</string>
+
+    <!-- Auth API: экраны входа/регистрации -->
+    <string name="auth_login_title">Вход в аккаунт</string>
+    <string name="auth_register_title">Регистрация</string>
+    <string name="auth_profile_title">Профиль</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_password">Пароль</string>
+    <string name="auth_password_again">Пароль ещё раз</string>
+    <string name="auth_password_old">Текущий пароль</string>
+    <string name="auth_password_new">Новый пароль</string>
+    <string name="auth_register_action">Зарегистрироваться</string>
+    <string name="auth_forgot_password">Забыли пароль?</string>
+    <string name="auth_no_account">Нет аккаунта? Зарегистрироваться</string>
+    <string name="auth_have_account">Уже есть аккаунт? Войти</string>
+    <string name="auth_or">или</string>
+    <string name="auth_back">Назад</string>
+    <string name="auth_err_email_required">Укажите email</string>
+    <string name="auth_err_email_invalid">Некорректный email</string>
+    <string name="auth_err_password_required">Укажите пароль</string>
+    <string name="auth_err_password_short">Пароль должен быть не короче 8 символов</string>
+    <string name="auth_err_password_mismatch">Пароли не совпадают</string>
+    <string name="auth_register_success">Аккаунт создан — вы вошли</string>
+
+    <!-- Auth API: профиль и пароли -->
+    <string name="auth_profile_id">ID</string>
+    <string name="auth_profile_username">Логин</string>
+    <string name="auth_profile_first_name">Имя</string>
+    <string name="auth_profile_last_name">Фамилия</string>
+    <string name="auth_change_password">Сменить пароль</string>
+    <string name="auth_logout">Выйти</string>
+    <string name="auth_password_changed">Пароль изменён — войдите заново</string>
+
+    <!-- Auth API: сброс пароля (два шага) -->
+    <string name="auth_reset_title">Сброс пароля</string>
+    <string name="auth_reset_hint">Укажите email — отправим код для сброса</string>
+    <string name="auth_reset_send">Отправить код</string>
+    <string name="auth_reset_sent">Если email зарегистрирован — код отправлен</string>
+    <string name="auth_reset_debug_code">Код для отладки: %1$s</string>
+    <string name="auth_reset_code">Код из письма</string>
+    <string name="auth_reset_confirm">Установить пароль</string>
+    <string name="auth_reset_success">Пароль сброшен — войдите с новым паролем</string>
+    <string name="auth_reset_resend">Отправить код ещё раз</string>
+    <string name="auth_reset_no_email">Сначала запросите код</string>
 </resources>

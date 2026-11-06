@@ -29,6 +29,8 @@
 | `NewPetAdapt` | Адаптер RecyclerView списка питомцев (`ListAdapter` + `DiffUtil`). |
 | `sqlClass/*` | Room-слой: `AppDatabase` (v6, миграции 1→6), сущности `PetData`, `Vaccination`, `VetVisit`, `PetPhoto`, `WeightRecord`; DAO `EmployeeDao` (insert возвращает id), `HealthDao`, `PetPhotoDao`, `WeightDao`. Есть Flow-варианты запросов. |
 | `ui/auth/*` | Способы входа: `AuthProvider` (общий интерфейс), `GoogleAuthProvider` (Google Sign-In), `HuaweiAuthProvider` (Huawei ID через OAuth 2.0/OIDC в браузере, PKCE S256, профиль из `id_token`), `AuthConfig` (учётные данные), `AuthProviders` — выбор провайдера по устройству. Эндпоинты Huawei: `oauth-login.cloud.huawei.com` (см. `/.well-known/openid-configuration`). |
+| `auth/*` | Интеграция Auth API (`AUTH_API.md`, 06.11.2026): `AuthRepository` — единственная точка вызовов, `AuthValidation`, `AuthErrorText`; `auth/network/*` — Retrofit/OkHttp, DTO, `TokenStore` (`EncryptedSharedPreferences`), `AuthInterceptor` (Bearer), `TokenAuthenticator` (refresh при 401), `ApiClient` (таймауты, debug BASIC-логи, `sessionExpired`). |
+| `ui/auth/*Activity.kt` | Экраны Auth API: `LoginActivity`, `RegisterActivity`, `ProfileActivity`, `PasswordChangeActivity`, `PasswordResetActivity`, `PasswordResetConfirmActivity`. |
 | `viewmodel/PetViewModel` | AndroidViewModel со StateFlow (`pets`, `vaccinations`, `visits`, `photos`, `weights`), реактивно из Room; снапшот для Undo-удаления. |
 
 ### Навигация
@@ -51,6 +53,7 @@
 | Room | `2.6.1` |
 | Picasso | `2.8` |
 | VK SDK | `4.1.0` (вход через VK, App ID 54841026 «Жизнь петомца», scope PHOTOS/EMAIL/PHONE) |
+| Auth API | Retrofit `2.11.0`, converter-gson `2.11.0`, OkHttp `4.12.0`, logging-interceptor `4.12.0` (URL — `BuildConfig.AUTH_BASE_URL`) |
 | Firebase Auth | отключён (выбран VK; класс FirebaseAuthHelper удалён) |
 | DataStore / security-crypto / Biometric | `1.1.6` / `1.1.0-alpha06` / `1.2.0-alpha05` |
 | Корутины (+ play-services) | `1.9.0` / `1.9.0` |
@@ -100,8 +103,10 @@ MyPet-master/
 │   ├── google-services.json  # Firebase конфигурация
 │   ├── proguard-rules.pro    # Пустой (minifyEnabled=false)
 │   ├── src/main/
-│   │   ├── AndroidManifest.xml   # 4 активности, только INTERNET permission
+│   │   ├── AndroidManifest.xml   # активности приложения + Auth API, разрешения (INTERNET, камера, календарь, уведомления, геолокация)
 │   │   ├── java/com/smock210/mypet/  # Исходники
+│   │   │   ├── auth/             # Auth API: Repository, validation, network/* (Retrofit, JWT, Authenticator)
+│   │   │   ├── ui/auth/          # экраны входа/регистрации/профиля/паролей + провайдеры Google/Huawei
 │   │   └── res/                   # Ресурсы
 │   ├── src/test/             # Unit-тесты (ExampleUnitTest)
 │   └── src/androidTest/      # Instrumented-тесты (ExampleInstrumentedTest)
@@ -128,6 +133,7 @@ MyPet-master/
 12. **Firebase**: зависимости отключены (плагина `google-services` в проекте нет, вход через VK). `google-services.json` остался в `app/` — можно удалить.
 13. `maps/ClinicRepository` возвращает mock-данные клиник (демо), но их адреса геокодируются через `Geocoder` — реальный поиск по Places API требует ключа Google.
 15. **Авторизация VK**: ошибка «Invalid request: application is blocked» приходит от сервера VK — приложение 51420569 должно быть опубликовано (или тестовый аккаунт добавлен в разработчики), а в его настройках Android должны совпадать пакет `com.smock210.mypet` и SHA-1 подписи. Точные значения показывает экран «Диагностика VK».
+16. **Auth API — блокеры на сервере (06.11.2026)**: TLS-сертификат самоподписанный и просрочен (27.10.2025), SAN только `www.` → в debug временно включён `AUTH_INSECURE_DEBUG_TLS`; `GOOGLE_CLIENT_ID` на сервере — плейсхолдер (Google-вход вернёт `401`); эндпоинта Huawei нет; письма сброса не уходят (`EMAIL_BACKEND=console`, только `debug_code`). Подробно — `FIX_PLAN.md`, запись 06.11.2026.
 14. ~~Тест миграции Room не написан~~ — **исправлено**: `MigrationTest.kt` (3 теста) прогоняет `MIGRATION_4_5` и `MIGRATION_5_6` вручную через `SupportSQLiteOpenHelper`, без `exportSchema = true`.
 
 ---

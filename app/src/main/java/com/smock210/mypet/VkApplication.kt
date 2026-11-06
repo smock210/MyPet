@@ -22,6 +22,10 @@ class VkApplication : Application() {
         // Material 3 Dynamic Color на Android 12+ (FIX_PLAN.md, 6.5)
         DynamicColors.applyToActivitiesIfAvailable(this)
 
+        // Auth API (AUTH_API.md): хранилище JWT и HTTP-клиент
+        // (Bearer + автообновление токенов) инициализируются до первого запроса
+        com.smock210.mypet.auth.network.ApiClient.init(this)
+
         initMapKit()
     }
 

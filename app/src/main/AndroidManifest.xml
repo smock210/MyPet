@@ -68,6 +68,42 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Auth API (AUTH_API.md): экраны входа/регистрации/профиля -->
+        <activity
+            android:name=".ui.auth.LoginActivity"
+            android:exported="false"
+            android:label="@string/auth_login_title"
+            android:theme="@style/Theme.MyPet.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.auth.RegisterActivity"
+            android:exported="false"
+            android:label="@string/auth_register_title"
+            android:theme="@style/Theme.MyPet.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.auth.ProfileActivity"
+            android:exported="false"
+            android:label="@string/auth_profile_title"
+            android:theme="@style/Theme.MyPet.NoActionBar" />
+        <activity
+            android:name=".ui.auth.PasswordChangeActivity"
+            android:exported="false"
+            android:label="@string/auth_change_password"
+            android:theme="@style/Theme.MyPet.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.auth.PasswordResetActivity"
+            android:exported="false"
+            android:label="@string/auth_reset_title"
+            android:theme="@style/Theme.MyPet.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.auth.PasswordResetConfirmActivity"
+            android:exported="false"
+            android:label="@string/auth_reset_title"
+            android:theme="@style/Theme.MyPet.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

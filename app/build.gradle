@@ -17,6 +17,12 @@ def vkServiceKey = localProps.getProperty('VK_SERVICE_KEY', '')
 def googleWebClientId = localProps.getProperty('GOOGLE_WEB_CLIENT_ID', '')
 def huaweiClientId = localProps.getProperty('HUAWEI_CLIENT_ID', '')
 def huaweiClientSecret = localProps.getProperty('HUAWEI_CLIENT_SECRET', '')
+// Базовый URL Auth API (AUTH_API.md). Обязан заканчиваться на "/".
+def authBaseUrl = localProps.getProperty('AUTH_BASE_URL', 'https://www.auth.lemniscatasaa.ru/')
+// ВРЕМЕННЫЙ флаг: разрешает debug-сборке принимать текущий самоподписанный
+// (и истёкший) TLS-сертификат сервера, пока не выпущен валидный.
+// См. «Требуется на сервере» в FIX_PLAN.md. В release-сборку не попадает.
+def authInsecureDebugTls = localProps.getProperty('AUTH_INSECURE_DEBUG_TLS', 'false')
 // API-ключ Яндекс.Карт (MapKit). Получается в консоли разработчика:
 // https://developer.tech.yandex.ru/services/ → «MapKit Mobile SDK».
 // Ключ клиентский (уходит в APK), поэтому хранится в local.properties,
@@ -53,6 +59,9 @@ android {
             buildConfigField "String", "HUAWEI_CLIENT_ID", "\"${huaweiClientId}\""
             buildConfigField "String", "HUAWEI_CLIENT_SECRET", "\"${huaweiClientSecret}\""
             buildConfigField "String", "MAPKIT_API_KEY", "\"${mapkitApiKey}\""
+            // Auth API (AUTH_API.md): базовый URL и временный debug-обход TLS
+            buildConfigField "String", "AUTH_BASE_URL", "\"${authBaseUrl}\""
+            buildConfigField "boolean", "AUTH_INSECURE_DEBUG_TLS", "${authInsecureDebugTls}"
         }
         release {
             minifyEnabled false
@@ -63,6 +72,10 @@ android {
             buildConfigField "String", "HUAWEI_CLIENT_SECRET", "\"\""
             // Ключ MapKit — клиентский (не секрет), карта нужна и в release
             buildConfigField "String", "MAPKIT_API_KEY", "\"${mapkitApiKey}\""
+            // Auth API: URL не секрет — нужен и в release. Флаг небезопасного
+            // TLS в release всегда false (см. debug выше).
+            buildConfigField "String", "AUTH_BASE_URL", "\"${authBaseUrl}\""
+            buildConfigField "boolean", "AUTH_INSECURE_DEBUG_TLS", "false"
         }
     }
 
@@ -115,6 +128,7 @@ dependencies {
     testImplementation 'androidx.test.ext:junit:1.2.1'
     testImplementation 'androidx.test:core:1.6.1'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
     androidTestImplementation 'androidx.test:core:1.6.1'
@@ -124,6 +138,14 @@ dependencies {
 
     // Gson - обновлено
     implementation 'com.google.code.gson:gson:2.11.0'
+
+    // Auth API (AUTH_API.md): Retrofit 2 + OkHttp 4.
+    // JSON — Gson (уже есть в проекте) вместо kotlinx-serialization из доки:
+    // отклонение зафиксировано в FIX_PLAN.md, контракт API не затрагивает.
+    implementation 'com.squareup.retrofit2:retrofit:2.11.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.11.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
 
     // Picarto - обновлено
     implementation 'com.squareup.picasso:picasso:2.8'

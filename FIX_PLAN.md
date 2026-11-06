@@ -574,3 +574,104 @@ java.lang.NoClassDefFoundError: Failed resolution of: Lcom/huawei/hms/utils/Chec
 **Требуется от пользователя:** получить ключ MapKit в [консоли разработчика](https://developer.tech.yandex.ru/services/) («MapKit Mobile SDK») и вписать его в `local.properties`: `MAPKIT_API_KEY=...`. Без ключа карта покажет сообщение, но приложение не падает.
 
 **Осталось вне плана (P3):** реальный поиск клиник (сейчас демонстрационный список, поиск идёт через системный Geocoder), `google-services.json` в `app/` можно удалить (Firebase отключён), CI пока не запускался (нет репозитория на GitHub).
+
+### 06.11.2026 — Интеграция Auth API (вход, регистрация, профиль, пароли)
+
+**Задача:** подключить к MyPet собственный сервис авторизации `https://www.auth.lemniscatasaa.ru` по документам `AUTH_API.md` и `ANDROID_CLIENT.md` (контракт API и сервер не менялись).
+
+**Что было:** вход был полностью локальным — VK SDK 4.1.0, Google Sign-In, Huawei ID; собственного бэкенда и JWT не было, регистрация отсутствовала (пункт меню вёл в VK), профиль хранился только как кэш в `SecurePreferencesManager`.
+
+**Осознанные отклонения от документа (зафиксированы по §0.7):**
+
+| Документ | В проекте | Причина |
+|---|---|---|
+| Новое Compose-приложение, minSdk 24, JVM 17 | Встроено в существующее приложение: XML/Material 3, minSdk 23, JVM 11 | MyPet уже написан на XML; поднятие minSdk сломало бы поддержку части устройств |
+| kotlinx.serialization | Gson (уже в проекте) | меньше зависимостей; контракт JSON не затронут |
+| VK ID SDK 2.5.0 | оставлен `com.vk:android-sdk:4.1.0` | токен уже доступен в `VKAuthenticationResult.Success.token.accessToken`, миграция — отдельный риск |
+| Провайдеры Google/VK/email | Huawei ID оставлен локальным, вне Auth API | сервис не поддерживает Huawei; на устройствах без GMS это единственный соцвход |
+| Реальные `GOOGLE_CLIENT_ID` | Google-кнопка показывает понятную ошибку, пока ID не задан | по решению заказчика «пока без Google» |
+
+**Созданные файлы:**
+
+*Сеть и данные (`app/src/main/java/com/smock210/mypet/auth/`):*
+- `network/AuthDtos.kt` — DTO запросов/ответов по §2 (`TokenPair`, `UserDto`, `RegisterResponse`, `MessageResponse` с `debug_code`);
+- `network/AuthApi.kt` — Retrofit-интерфейс всех 10 эндпоинтов, каждый возвращает `Response<T>`;
+- `network/ApiErrors.kt` — `AuthApiException` + разбор `error`/`detail`/`details`, `429` и таймера ожидания;
+- `network/TokenStore.kt` — пара JWT только в `EncryptedSharedPreferences` (отдельный файл `auth_secure_prefs`); конструктор с `SharedPreferences` для тестов;
+- `network/AuthInterceptor.kt` — `Authorization: Bearer`, кроме публичных путей;
+- `network/TokenAuthenticator.kt` — однократный refresh на `401` под локом, без рекурсии;
+- `network/ApiClient.kt` — OkHttp/Retrofit (таймауты 15/20 с), BASIC-логирование только в debug, `sessionExpired`, инициализация в `VkApplication`;
+- `AuthRepository.kt` — вход/регистрация/VK/Google/`me`/`refreshProfile`/`logout`/смена и сброс пароля; все вызовы в `Dispatchers.IO`;
+- `AuthValidation.kt` — проверка email и пароля (≥ 8 символов), покрыта тестами без Android;
+- `AuthErrorText.kt` — человекочитаемые тексты для `400/401/429/5xx/IOException`.
+
+*Экраны (`ui/auth/` + `res/layout/`):* `LoginActivity`, `RegisterActivity`, `ProfileActivity`, `PasswordChangeActivity`, `PasswordResetActivity`, `PasswordResetConfirmActivity` и 6 layout `activity_auth_*.xml`.
+
+*Прочее:* строки `auth_*` в `values`/`values-en`, 6 активностей в манифесте (`Theme.MyPet.NoActionBar`), `ApiClient.init()` в `VkApplication`, `MainActivity` переведён на новые экраны (gate: сессия → профиль, иначе вход; меню «Войти/Регистрация»).
+
+**Поведение по кодам (как в §2.13):**
+- `400`/`401` — текст сервера, поля формы подсвечиваются из `details`;
+- `401` защищённого запроса — один refresh и повтор; `401` от refresh → очистка токенов + сигнал `sessionExpired` → главный экран и тост «Сессия истекла»;
+- `429` — «Слишком много попыток…» (с секундами из `Expected available in N seconds`), **без** разлогина;
+- `5xx`/`IOException` — «Сервис недоступен»/«Нет соединения», **без** разлогина;
+- повторное нажатие кнопки блокируется флагом `busy` (один запрос);
+- `401` публичных путей (`login/`, `register/`, `token/refresh/`, `login/google/`, `login/vk/`) **не** считается истёкшей сессией — иначе неверный пароль давал ложный разлогин (найдено тестом и исправлено).
+
+**Безопасность (проверено по §9.3):** секретов в APK нет (только публичные ID), HTTPS только, `usesCleartextTraffic` не включался, токены только в `EncryptedSharedPreferences`, тела с токенами не логируются (уровень BASIC), `GlobalScope` не используется.
+
+**Сборка и тесты:**
+- `./gradlew assembleDebug` — успешно;
+- `./gradlew testDebugUnitTest` — **60/60 зелёные** (добавлены `AuthValidationTest`, `ApiErrorsTest`, `AuthApiFlowTest` на MockWebServer: Bearer, refresh+retry, отозванный refresh, logout, 429, VK);
+- реально зарезолвились: Retrofit `2.11.0`, converter-gson `2.11.0`, OkHttp `4.12.0`, logging-interceptor `4.12.0`, MockWebServer `4.12.0`.
+
+**E2E на эмуляторе `emulator-5554` с живым сервером (все — успешно):**
+1. первый запуск без токенов → Login;
+2. регистрация нового email → `201`, сразу шапка с email, `/me/` → `200` (без повторного входа);
+3. профиль: username/email/ID/имя/фамилия из `/me/`;
+4. Sign out → `/logout/` `200`, шапка сбрасывается на «User / Sign in to sync», перезапуск оставляет Login;
+5. вход по email/паролю → `200` + `/me/` `200`, шапка заполняется;
+6. неверный пароль → `401`, Snackbar «Invalid credentials», сессия не создаётся, ложного «Сессия истекла» нет;
+7. Google при пустом Web Client ID → сообщение «Google sign-in is unavailable…», без открытия окна и краша;
+8. смена пароля → `200`, токены очищены, приложение на Login; вход с новым паролем работает;
+9. сброс пароля: шаг 1 → `200` + `debug_code` (показан только в debug), шаг 2 → `200`, переход на Login, вход с новым паролем работает;
+10. истёкшая суточная сессия (refresh отозван) → `/me/` `401` → refresh `401` → очистка кэша, возврат на главный, тост «Сессия истекла».
+
+**Таблица приёмки §9.2:**
+
+| # | Сценарий | Статус |
+|---|---|---|
+| 1 | Первый запуск без токенов → Login | ✅ E2E |
+| 2 | Верные email/пароль → Profile | ✅ E2E |
+| 3 | Неверный пароль → сообщение, остаёмся на Login | ✅ E2E |
+| 4 | Регистрация → Profile сразу | ✅ E2E |
+| 5 | Пароль `"1"` → «минимум 8 символов», форма не отправлена | ✅ unit (`AuthValidationTest`) |
+| 6 | Занятый email → «User already exists» | ✅ unit (MockWebServer) |
+| 7 | Google-вход | ⛔ нет Web Client ID на сервере и в приложении; проверена понятная заглушка |
+| 8 | VK-вход | ⚠️ путь реализован и покрыт тестом; живой вход не прогонялся (нужен аккаунт VK) |
+| 9 | Перезапуск → Profile | ✅ E2E |
+| 10 | Logout → Login, после перезапуска Login | ✅ E2E |
+| 11 | Мусорный access → refresh; невалидный refresh → Login | ✅ unit + E2E (истёкшая сессия) |
+| 12 | Смена пароля: верный старый → 200, токены очищены | ✅ E2E |
+| 13 | Смена пароля: неверный старый → сессия сохранена | ✅ unit |
+| 14 | Сброс: известный email → код, шаг 2 | ✅ E2E (`debug_code`) |
+| 15 | Сброс: неизвестный email → тот же `200` | ✅ по контракту (сервер не раскрывает); UI одинаковый |
+| 16 | Сброс: неверный код | ✅ по контракту (текст сервера), отдельно не прогонялся |
+| 17 | Сброс: успешный → вход с новым паролем | ✅ E2E |
+| 18 | 11 неверных логинов → `429`, без разлогина | ✅ unit (429); живой лимит не выжигался |
+| 19 | Авиарежим → «Нет соединения», без разлогина | ✅ unit (`IOException` → code 0) |
+| 20 | Двойной тап → один запрос | ✅ флаг `busy` во всех формах |
+| 21 | Отмена Google-аккаунта → без краша | ✅ обработка `ApiException 12501` |
+
+**Требуется на сервере (самостоятельно не правилось):**
+1. **TLS-сертификат невалиден:** самоподписанный и просрочен (`notAfter = 27.10.2025`), `CN=auth.lemniscatasaa.ru`, SAN только `www.auth.lemniscatasaa.ru`. Android/OkHttp не смогут подключиться без обхода проверки. Нужен валидный сертификат (например, Let's Encrypt в панели Reg.ru) и SAN на оба имени — `auth.` и `www.auth.`. Пока стоит временный флаг `AUTH_INSECURE_DEBUG_TLS=true` в `local.properties` (только debug, в release всегда `false`); после выпуска сертификата флаг удалить.
+2. **`GOOGLE_CLIENT_ID` в `settings.py` — плейсхолдер:** Google-вход вернёт `401 Invalid Google token`. Нужен реальный Web Client ID, совпадающий с приложением.
+3. **Нет эндпоинта Huawei:** `/authApi/login/huawei/` отсутствует; Huawei ID пока локальный (профиль не синхронизируется с сервером).
+4. **Письма не уходят:** `EMAIL_BACKEND` консольный, сброс работает только через `debug_code` при `DEBUG=True`. Для продакшена нужен SMTP и `DEBUG=False` (тогда `debug_code` исчезнет — приложение это уже учитывает).
+5. **Возможная коллизия email:** при регистрации существующего email сервер должен отдавать `400` с `error`; в одном из прогонов наблюдался `500` — стоит проверить обработку `IntegrityError` (в приложении `5xx` показывается как «Сервис недоступен»).
+
+**Требуется от заказчика:** реальный Google Web Client ID (в `local.properties` → `GOOGLE_WEB_CLIENT_ID` и в `settings.py` сервера), аккаунт VK для живой проверки входа, валидный сертификат на сервере. `VK_APP_ID`/SHA-1/package name уже настроены.
+
+**Технический долг / заметки:**
+- `AUTH_INSECURE_DEBUG_TLS` — временный, удалить вместе с `applyInsecureDebugTls()` после установки валидного сертификата;
+- в `MainActivity` остался легаси-путь входа VK без бэкенда (для старых сессий VK) — можно удалить после миграции пользователей;
+- экран профиля при истечении сессии сам возвращает на главный (тост «Сессия истекла»).

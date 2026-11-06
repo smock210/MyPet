@@ -33,6 +33,19 @@
 - 4 density-слота для `user_placeholder.png`
 - Адаптивная тема: `values-night/themes.xml` (purple_200)
 
+### 8. Авторизация через собственный Auth API (06.11.2026)
+- Сервис: `https://www.auth.lemniscatasaa.ru` (`AUTH_API.md`), контракт не менялся
+- Сетевой слой: Retrofit 2.11 + OkHttp 4.12 + Gson, `Authorization: Bearer`,
+  автообновление access при `401`, разбор `400/401/429/5xx/IOException`
+- Токены (access/refresh) — только в `EncryptedSharedPreferences` (`auth_secure_prefs`)
+- Экраны: Login, Register, Profile, Change password, Reset password (2 шага),
+  gate на старте (сессия → Profile, иначе Login)
+- Провайдеры: email/пароль, VK (токен → `/login/vk/`), Google (нужен Web Client ID,
+  пока заглушка), Huawei ID — локальный, вне Auth API
+- Смена/сброс пароля отзывают refresh на сервере — приложение очищает сессию и уводит на Login
+- Тесты: `AuthValidationTest`, `ApiErrorsTest`, `AuthApiFlowTest` (MockWebServer) — 60/60
+- Журнал и список требований к серверу — `FIX_PLAN.md`, запись от 06.11.2026
+
 ---
 
 ## 🎯 Предлагаемый новый функционал

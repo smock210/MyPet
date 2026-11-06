@@ -271,4 +271,56 @@
     <string name="maps_phone_template">Phone: %1$s</string>
 
     <string name="maps_key_missing">Map unavailable: Yandex Maps API key is missing</string>
+
+    <!-- Auth API: error texts (AUTH_API.md, §2.13) -->
+    <string name="auth_err_no_connection">No connection to the server</string>
+    <string name="auth_err_throttled">Too many attempts, please try later</string>
+    <string name="auth_err_throttled_retry">Too many attempts, try in %1$d s</string>
+    <string name="auth_err_server">Service unavailable, please try later</string>
+    <string name="auth_err_unknown">Request failed</string>
+    <string name="auth_session_expired">Session expired — please sign in again</string>
+    <string name="auth_google_disabled">Google sign-in is unavailable: Web Client ID is not set</string>
+
+    <!-- Auth API: login / register screens -->
+    <string name="auth_login_title">Sign in</string>
+    <string name="auth_register_title">Create account</string>
+    <string name="auth_profile_title">Profile</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_password_again">Password again</string>
+    <string name="auth_password_old">Current password</string>
+    <string name="auth_password_new">New password</string>
+    <string name="auth_register_action">Create account</string>
+    <string name="auth_forgot_password">Forgot password?</string>
+    <string name="auth_no_account">No account? Register</string>
+    <string name="auth_have_account">Already have an account? Sign in</string>
+    <string name="auth_or">or</string>
+    <string name="auth_back">Back</string>
+    <string name="auth_err_email_required">Enter your email</string>
+    <string name="auth_err_email_invalid">Invalid email</string>
+    <string name="auth_err_password_required">Enter your password</string>
+    <string name="auth_err_password_short">Password must be at least 8 characters</string>
+    <string name="auth_err_password_mismatch">Passwords do not match</string>
+    <string name="auth_register_success">Account created — you are signed in</string>
+
+    <!-- Auth API: profile and passwords -->
+    <string name="auth_profile_id">ID</string>
+    <string name="auth_profile_username">Username</string>
+    <string name="auth_profile_first_name">First name</string>
+    <string name="auth_profile_last_name">Last name</string>
+    <string name="auth_change_password">Change password</string>
+    <string name="auth_logout">Sign out</string>
+    <string name="auth_password_changed">Password changed — please sign in again</string>
+
+    <!-- Auth API: password reset (two steps) -->
+    <string name="auth_reset_title">Reset password</string>
+    <string name="auth_reset_hint">Enter your email — we will send a reset code</string>
+    <string name="auth_reset_send">Send code</string>
+    <string name="auth_reset_sent">If the email is registered, a code has been sent</string>
+    <string name="auth_reset_debug_code">Debug code: %1$s</string>
+    <string name="auth_reset_code">Code from the email</string>
+    <string name="auth_reset_confirm">Set password</string>
+    <string name="auth_reset_success">Password reset — sign in with the new password</string>
+    <string name="auth_reset_resend">Send code again</string>
+    <string name="auth_reset_no_email">Request a code first</string>
 </resources>

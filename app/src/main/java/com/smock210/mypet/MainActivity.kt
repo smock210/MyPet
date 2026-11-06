@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -23,16 +24,16 @@ import com.smock210.mypet.security.BiometricAuthHelper
 import com.smock210.mypet.security.DataStoreProvider
 import com.smock210.mypet.security.SecurePreferencesManager
 import com.smock210.mypet.sqlClass.PetData
+import com.smock210.mypet.auth.AuthRepository
 import com.smock210.mypet.ui.auth.AuthProfile
 import com.smock210.mypet.ui.auth.AuthProviders
-import com.smock210.mypet.ui.auth.AuthProvider
-import com.smock210.mypet.ui.auth.AuthResult
-import com.smock210.mypet.ui.auth.HuaweiNativeAuthProvider
+import com.smock210.mypet.ui.auth.LoginActivity
+import com.smock210.mypet.ui.auth.ProfileActivity
+import com.smock210.mypet.ui.auth.RegisterActivity
 import com.smock210.mypet.viewmodel.PetViewModel
 import com.squareup.picasso.Picasso
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.auth.VKAuthenticationResult
-import com.vk.api.sdk.auth.VKScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,6 +47,7 @@ class MainActivity : AppCompatActivity(),
     private lateinit var petViewModel: PetViewModel
     private lateinit var dataStore: DataStoreProvider
     private lateinit var securePrefs: SecurePreferencesManager
+    private lateinit var repo: AuthRepository
     private var petList: List<PetData> = emptyList()
     /** Список, который сейчас отображается (с учётом поиска) — по нему работает свайп. */
     private var visiblePetList: List<PetData> = emptyList()
@@ -54,40 +56,21 @@ class MainActivity : AppCompatActivity(),
 
     private val biometricHelper = BiometricAuthHelper()
 
-    /** Провайдер, для которого сейчас выполняется вход. */
-    private var activeProvider: AuthProvider? = null
-
-    private val vkAuthLauncher = VK.login(this) { result ->
-        when (result) {
-            is VKAuthenticationResult.Success -> loadVkProfile()
-            is VKAuthenticationResult.Failed -> {
-                // Показываем реальную причину от VK (например, «application is blocked»),
-                // иначе пользователь не поймёт, что не так с приложением в кабинете VK.
-                val reason = result.exception.authError
-                    ?: result.exception.message
-                    ?: getString(R.string.vk_login_failed)
-                Log.w("VK", "Authorization failed: ${result.exception.authError} / ${result.exception.message}")
-                Toast.makeText(
-                    this,
-                    getString(R.string.vk_login_failed_reason, reason),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-    }
-
-    /** Результат входа через Google / Huawei ID. */
-    private val authLauncher = registerForActivityResult(
+    /**
+     * Результат экранов Auth API (вход/регистрация/профиль):
+     * в любом случае перечитываем шапку (данные уже в кэше).
+     */
+    private val accountLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val provider = activeProvider ?: return@registerForActivityResult
-        provider.handleActivityResult(result) { authResult -> onAuthResult(authResult) }
+    ) {
+        requestUsers()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dataStore = DataStoreProvider(applicationContext)
         securePrefs = SecurePreferencesManager(this)
+        repo = AuthRepository(this)
 
         // Тема применяется до наполнения UI (FIX_PLAN.md, 4.2 / 6.4)
         applyTheme(dataStore.getThemeModeSync())
@@ -112,8 +95,8 @@ class MainActivity : AppCompatActivity(),
         binding.btnAddPet.setOnClickListener(openAddPet)
         binding.btnEmptyAdd.setOnClickListener(openAddPet)
 
-        // Вход в профиль
-        binding.btnSignIn.setOnClickListener { showSignInMenu() }
+        // Вход в профиль (Auth API: экран входа или профиль при сессии)
+        binding.btnSignIn.setOnClickListener { openAccountScreen() }
 
         lifecycleScope.launch {
             petViewModel.pets.collect { pets ->
@@ -121,88 +104,36 @@ class MainActivity : AppCompatActivity(),
                 applySearch()
             }
         }
+
+        // «Сессия истекла»: Authenticator уже очистил токены — сбрасываем шапку
+        lifecycleScope.launch {
+            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                repo.sessionExpired.collect {
+                    displayCachedProfile()
+                    Toast.makeText(
+                        this@MainActivity,
+                        R.string.auth_session_expired,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+
         requestUsers()
         enforceBiometricLock()
     }
 
-    /** Меню выбора способа входа (VK / Google / Huawei ID). */
-    private fun showSignInMenu() {
-        val popup = android.widget.PopupMenu(this, binding.btnSignIn)
-        popup.menu.add(0, 1, 0, getString(R.string.vk_sign_in))
-        popup.menu.add(0, 2, 1, getString(R.string.google_sign_in))
-        popup.menu.add(0, 3, 2, getString(R.string.huawei_sign_in))
-        popup.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                1 -> signInWithVk()
-                2 -> signInWith(AuthProviders.google())
-                3 -> signInWithHuawei()
-            }
-            true
-        }
-        popup.show()
-    }
-
-    private fun signInWithVk() {
-        if (VK.isLoggedIn()) {
-            Toast.makeText(this, R.string.vk_already_logged_in, Toast.LENGTH_SHORT).show()
+    /**
+     * Открывает экран аккаунта: при активной сессии — профиль,
+     * иначе — вход (email/пароль, VK, Google, Huawei ID).
+     */
+    private fun openAccountScreen() {
+        val target = if (repo.hasSession()) {
+            ProfileActivity::class.java
         } else {
-            vkAuthLauncher.launch(arrayListOf(VKScope.PHOTOS, VKScope.EMAIL, VKScope.PHONE))
+            LoginActivity::class.java
         }
-    }
-
-    private fun signInWithHuawei() {
-        val native = AuthProviders.huaweiNative()
-        if (native.isAvailable(this)) {
-            signInWith(native)
-        } else {
-            signInWith(AuthProviders.huawei())
-        }
-    }
-
-    /** Запуск входа через выбранного провайдера (Google / Huawei ID). */
-    private fun signInWith(provider: AuthProvider) {
-        activeProvider = provider
-        try {
-            provider.signIn(this, authLauncher) { result -> onAuthResult(result) }
-        } catch (e: Throwable) {
-            // Например, NoClassDefFoundError, если в сборке не хватает части HMS SDK:
-            // не роняем приложение, а предлагаем веб-авторизацию Huawei ID.
-            Log.w("Auth", "Не удалось запустить вход через ${provider.id}: ${e.message}")
-            if (provider.id == HuaweiNativeAuthProvider.PROVIDER_ID) {
-                Toast.makeText(this, R.string.huawei_native_unavailable, Toast.LENGTH_LONG).show()
-                signInWith(AuthProviders.huawei())
-            } else {
-                Toast.makeText(
-                    this,
-                    getString(R.string.auth_login_failed, e.message ?: provider.id),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-    }
-
-    /** Обработка результата входа через Google / Huawei ID. */
-    private fun onAuthResult(result: AuthResult) {
-        when (result) {
-            is AuthResult.Success -> {
-                bindProfile(result.profile)
-                lifecycleScope.launch(Dispatchers.IO) {
-                    securePrefs.saveProfileProvider(result.profile.provider)
-                    securePrefs.saveProfileName(result.profile.name)
-                    securePrefs.saveProfilePhoto(result.profile.photoUrl.orEmpty())
-                    securePrefs.saveProfileEmail(result.profile.email.orEmpty())
-                }
-            }
-            is AuthResult.Error -> {
-                Toast.makeText(this, getString(R.string.auth_login_failed, result.message), Toast.LENGTH_LONG).show()
-                // Нативный вход по HMS не удался — пробуем веб-авторизацию Huawei ID
-                if (activeProvider?.id == HuaweiNativeAuthProvider.PROVIDER_ID) {
-                    activeProvider = null
-                    signInWith(AuthProviders.huawei())
-                }
-            }
-            AuthResult.Cancelled -> Unit
-        }
+        accountLauncher.launch(Intent(this, target))
     }
 
     /** Показывает профиль пользователя в шапке главного экрана. */
@@ -226,6 +157,7 @@ class MainActivity : AppCompatActivity(),
         "vk" -> "VK"
         "google" -> "Google"
         "huawei" -> "Huawei ID"
+        "email" -> "E-mail"
         else -> providerId
     }
 
@@ -244,7 +176,7 @@ class MainActivity : AppCompatActivity(),
             getString(R.string.auth_recommended_provider, provider.title),
             Snackbar.LENGTH_LONG
         ).setAction(R.string.menu_vhod_title) {
-            signInWith(provider)
+            openAccountScreen()
         }.show()
     }
 
@@ -371,37 +303,17 @@ class MainActivity : AppCompatActivity(),
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_vhod -> {
-                if (VK.isLoggedIn()) {
-                    Toast.makeText(this, R.string.vk_already_logged_in, Toast.LENGTH_SHORT).show()
-                } else {
-                    vkAuthLauncher.launch(arrayListOf(VKScope.PHOTOS, VKScope.EMAIL, VKScope.PHONE))
-                }
-            }
+            R.id.menu_vhod -> openAccountScreen()
             R.id.menu_registr -> {
-                // Регистрация выполняется на стороне VK — пунктом меню запускаем вход
-                if (VK.isLoggedIn()) {
-                    Toast.makeText(this, R.string.vk_already_logged_in, Toast.LENGTH_SHORT).show()
-                } else {
-                    vkAuthLauncher.launch(arrayListOf(VKScope.PHOTOS, VKScope.EMAIL, VKScope.PHONE))
-                }
+                accountLauncher.launch(Intent(this, RegisterActivity::class.java))
             }
             R.id.menu_sign_in_google -> {
-                val provider = AuthProviders.google()
-                if (!provider.isAvailable(this)) {
-                    Toast.makeText(this, R.string.google_not_available, Toast.LENGTH_LONG).show()
-                } else {
-                    signInWith(provider)
-                }
+                // Google-кнопка живёт на экране входа (там же проверка Web Client ID)
+                accountLauncher.launch(Intent(this, LoginActivity::class.java))
             }
             R.id.menu_sign_in_huawei -> {
-                // На устройствах с HMS Core — нативный вход, иначе — веб-авторизация
-                val native = AuthProviders.huaweiNative()
-                if (native.isAvailable(this)) {
-                    signInWith(native)
-                } else {
-                    signInWith(AuthProviders.huawei())
-                }
+                // Huawei ID — локальный вход вне Auth API, кнопка на экране входа
+                accountLauncher.launch(Intent(this, LoginActivity::class.java))
             }
             R.id.menu_add_pet -> {
                 val intent = Intent(this, AddPetActivity::class.java)
@@ -505,25 +417,45 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun requestUsers() {
-        // Сначала показываем кэш из зашифрованного хранилища, затем обновляем из VK
+        // 1. Сначала мгновенно показываем кэш из зашифрованного хранилища
+        displayCachedProfile()
+
+        // 2. Затем обновляем данные: активная сессия Auth API → /me/,
+        //    иначе — легаси-сессия VK без бэкенда (старые пользователи)
+        if (repo.hasSession()) {
+            lifecycleScope.launch {
+                runCatching { repo.refreshProfile() }
+                displayCachedProfile()
+            }
+        } else if (VK.isLoggedIn()) {
+            loadVkProfile()
+        }
+
+        suggestRecommendedProvider()
+    }
+
+    /** Показывает профиль из локального кэша (без сети). */
+    private fun displayCachedProfile() {
         val cachedName = securePrefs.getProfileName()
         if (!cachedName.isNullOrBlank()) {
             binding.nameTV.text = cachedName
-            securePrefs.getProfileProvider()?.let { provider ->
+            securePrefs.getProfileProvider()?.takeIf { it.isNotBlank() }?.let { provider ->
                 binding.tvUserSubtitle.text =
                     getString(R.string.signed_in_as, providerTitle(provider))
             }
             securePrefs.getProfilePhoto()?.takeIf { it.isNotBlank() }?.let {
                 Picasso.get().load(it).placeholder(R.drawable.ic_person).into(binding.avatarIV)
             } ?: binding.avatarIV.setImageResource(R.drawable.ic_person)
+            binding.btnSignIn.text = getString(R.string.menu_vhod_title)
         } else {
             binding.nameTV.text = getString(R.string.defolt_тame)
             binding.tvUserSubtitle.setText(R.string.not_signed_in)
             binding.avatarIV.setImageResource(R.drawable.ic_person)
+            binding.btnSignIn.text = getString(R.string.menu_vhod_title)
         }
-        if (VK.isLoggedIn()) {
-            loadVkProfile()
-        }
+    }
+
+    private fun suggestRecommendedProfileHint() {
         suggestRecommendedProvider()
     }
 
