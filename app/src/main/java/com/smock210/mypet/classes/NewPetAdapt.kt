@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.smock210.mypet.R
 import com.smock210.mypet.sqlClass.PetData
+import com.smock210.mypet.utils.ImageStorage
 import com.squareup.picasso.Picasso
 
 class NewPetAdapt(
@@ -35,9 +36,11 @@ class NewPetAdapt(
         holder.subtitleTextView.text = subtitle
         holder.subtitleTextView.visibility = if (subtitle.isBlank()) View.GONE else View.VISIBLE
 
-        // Фото питомца показываем круглым (CircleImageView), без фото — заглушка «лапка»
-        val photoUri = pet.photoUri
-        if (photoUri.isNullOrBlank()) {
+        // Фото питомца показываем круглым (CircleImageView), без фото — заглушка «лапка».
+        // В БД путь абсолютный — ImageStorage.toLoadUri приводит его к file://,
+        // иначе Picasso не умеет загружать такие пути.
+        val photoUri = ImageStorage.toLoadUri(pet.photoUri)
+        if (photoUri == null) {
             holder.smallImageView.setImageResource(R.drawable.ic_pet_placeholder)
         } else {
             Picasso.get()

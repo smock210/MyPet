@@ -326,9 +326,10 @@ class MainDetailActivity : AppCompatActivity() {
         binding.tvPetDetail.text = pet.smallDetail ?: getString(R.string.no_notes)
 
         val photoUri = pet.photoUri
-        if (!photoUri.isNullOrBlank()) {
+        val loadUri = ImageStorage.toLoadUri(photoUri)
+        if (loadUri != null) {
             Picasso.get()
-                .load(photoUri)
+                .load(loadUri)
                 .placeholder(R.drawable.ic_pet_placeholder)
                 .error(R.drawable.ic_pet_placeholder)
                 .into(binding.ivPetAvatar)

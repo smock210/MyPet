@@ -40,6 +40,26 @@ object ImageStorage {
     }
 
     /**
+     * Преобразует сохранённую в БД ссылку в URI, понятный загрузчикам
+     * изображений (Picasso 2.x).
+     *
+     * В БД аватары и фото хранятся абсолютным путём
+     * (`/data/user/0/.../files/photos/xxx.jpg`). Picasso понимает только
+     * URI со схемой `file://`, `content://`, `http(s)://` и на «голом»
+     * абсолютном пути молча показывает placeholder, поэтому оборачиваем
+     * его в `Uri.fromFile`. Относится и к старым записям в БД.
+     */
+    fun toLoadUri(source: String?): Uri? {
+        if (source.isNullOrBlank()) return null
+        val hasScheme = source.startsWith("content://") ||
+            source.startsWith("file://") ||
+            source.startsWith("http://") ||
+            source.startsWith("https://") ||
+            source.startsWith("android.resource://")
+        return if (hasScheme) Uri.parse(source) else Uri.fromFile(File(source))
+    }
+
+    /**
      * Приводит ссылку на изображение к постоянной: если это content:// URI —
      * копирует файл в хранилище, если это уже путь к файлу — возвращает как есть.
      */

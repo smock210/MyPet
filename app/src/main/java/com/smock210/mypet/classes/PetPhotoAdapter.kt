@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.smock210.mypet.R
 import com.smock210.mypet.sqlClass.PetPhoto
+import com.smock210.mypet.utils.ImageStorage
 import com.squareup.picasso.Picasso
 
 /** Фотографии питомца в горизонтальной галерее. */
@@ -27,7 +28,7 @@ class PetPhotoAdapter(
     override fun onBindViewHolder(holder: Vh, position: Int) {
         val item = getItem(position)
         Picasso.get()
-            .load(item.photoUri)
+            .load(ImageStorage.toLoadUri(item.photoUri))
             .placeholder(R.drawable.ic_pet_placeholder_centered)
             .error(R.drawable.ic_pet_placeholder_centered)
             .into(holder.image)

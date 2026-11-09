@@ -110,7 +110,7 @@ class AddPetFragment : Fragment() {
         }
 
         selectedPhotoUri = pet.photoUri?.let(Uri::parse)
-        pet.photoUri?.takeIf { it.isNotBlank() }?.let {
+        ImageStorage.toLoadUri(pet.photoUri)?.let {
             Picasso.get().load(it).into(view.findViewById<CircleImageView>(R.id.iv_pet_photo_preview))
         }
     }
