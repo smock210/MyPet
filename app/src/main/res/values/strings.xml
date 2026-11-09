@@ -310,6 +310,9 @@
     <string name="auth_profile_last_name">Фамилия</string>
     <string name="auth_change_password">Сменить пароль</string>
     <string name="auth_logout">Выйти</string>
+    <string name="auth_link_vk">Привязать ВК</string>
+    <string name="auth_vk_linked">ВК привязан</string>
+    <string name="auth_vk_already_linked">ВК уже привязан</string>
     <string name="auth_password_changed">Пароль изменён — войдите заново</string>
 
     <!-- Auth API: сброс пароля (два шага) -->

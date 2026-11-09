@@ -20,7 +20,7 @@
 | Компонент | Назначение |
 |---|---|
 | `SplashActivity` | Лаунчер на SplashScreen API (`core-splashscreen`, тема `Theme.SplashScreen`), сразу открывает `MainActivity`. |
-| `MainActivity` | Список питомцев (RecyclerView + `NewPetAdapt`), свайп-удаление с Undo-Snackbar, поиск через `SearchView`, options-menu `title_menu.xml`. |
+| `MainActivity` | Список питомцев (RecyclerView + `NewPetAdapt`), свайп-удаление с Undo-Snackbar, поиск через `SearchView`, options-menu `title_menu.xml` (вход/выход, привязка VK). |
 | `MainDetailActivity` | Карточка питомца: фото-галерея, запись видео, публикация в VK, график веса, переход в `health.HealthActivity`. |
 | `AddPetActivity` | Хост `ui.AddPetFragment` — форма добавления **и редактирования** питомца (`EXTRA_PET_ID`). |
 | `health.HealthActivity` | TabLayout + ViewPager: `VaccinationFragment`, `VetVisitFragment`. |

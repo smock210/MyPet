@@ -34,6 +34,7 @@ import com.smock210.mypet.viewmodel.PetViewModel
 import com.squareup.picasso.Picasso
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.auth.VKAuthenticationResult
+import com.vk.api.sdk.auth.VKScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -64,6 +65,31 @@ class MainActivity : AppCompatActivity(),
         ActivityResultContracts.StartActivityForResult()
     ) {
         requestUsers()
+        invalidateOptionsMenu()
+    }
+
+    /**
+     * Привязка VK к текущему аккаунту: авторизуем VK SDK локально.
+     * Это включает публикацию на стену; серверный Auth API привязку
+     * VK к email-аккаунту пока не поддерживает.
+     */
+    private val vkLinkLauncher = VK.login(this) { result ->
+        when (result) {
+            is VKAuthenticationResult.Success -> {
+                Toast.makeText(this, R.string.auth_vk_linked, Toast.LENGTH_SHORT).show()
+                invalidateOptionsMenu()
+            }
+            is VKAuthenticationResult.Failed -> {
+                val reason = result.exception.authError
+                    ?: result.exception.message
+                    ?: getString(R.string.vk_login_failed)
+                Toast.makeText(
+                    this,
+                    getString(R.string.vk_login_failed_reason, reason),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,6 +123,9 @@ class MainActivity : AppCompatActivity(),
 
         // Вход в профиль (Auth API: экран входа или профиль при сессии)
         binding.btnSignIn.setOnClickListener { openAccountScreen() }
+        // Карточка пользователя тоже открывает профиль: после входа кнопка
+        // «Войти» скрыта, и это основной путь к смене пароля/профилю.
+        binding.cardUser.setOnClickListener { openAccountScreen() }
 
         lifecycleScope.launch {
             petViewModel.pets.collect { pets ->
@@ -110,6 +139,7 @@ class MainActivity : AppCompatActivity(),
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
                 repo.sessionExpired.collect {
                     displayCachedProfile()
+                    invalidateOptionsMenu()
                     Toast.makeText(
                         this@MainActivity,
                         R.string.auth_session_expired,
@@ -143,14 +173,20 @@ class MainActivity : AppCompatActivity(),
             .takeIf { it.isNotBlank() }
             ?.let { getString(R.string.signed_in_as, providerTitle(it)) }
             ?: getString(R.string.not_signed_in)
-        binding.btnSignIn.text = getString(R.string.menu_vhod_title)
+        // После входа кнопка «Войти» не нужна: выход доступен в меню (⋮).
+        binding.btnSignIn.visibility = View.GONE
         val photo = profile.photo()
         if (photo != null) {
             Picasso.get().load(photo).placeholder(R.drawable.ic_person).into(binding.avatarIV)
         } else {
             binding.avatarIV.setImageResource(R.drawable.ic_person)
         }
+        invalidateOptionsMenu()
     }
+
+    /** Есть ли активный вход: Auth API, легаси-VK или кэш профиля. */
+    private fun isSignedIn(): Boolean =
+        repo.hasSession() || VK.isLoggedIn() || !securePrefs.getProfileName().isNullOrBlank()
 
     /** Название провайдера авторизации для подписи в профиле. */
     private fun providerTitle(providerId: String): String = when (providerId) {
@@ -272,6 +308,14 @@ class MainActivity : AppCompatActivity(),
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.title_menu, menu)
 
+        // «Войти/Зарегистрироваться» — только без сессии; после входа
+        // в меню остаются «Выйти» и «Привязать ВК».
+        val signedIn = isSignedIn()
+        menu.findItem(R.id.menu_vhod)?.isVisible = !signedIn
+        menu.findItem(R.id.menu_registr)?.isVisible = !signedIn
+        menu.findItem(R.id.menu_logout)?.isVisible = signedIn
+        menu.findItem(R.id.menu_link_vk)?.isVisible = signedIn
+
         // Поиск по списку питомцев (FIX_PLAN.md, 6.2)
         val searchItem = menu.findItem(R.id.menu_search)
         val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
@@ -307,14 +351,8 @@ class MainActivity : AppCompatActivity(),
             R.id.menu_registr -> {
                 accountLauncher.launch(Intent(this, RegisterActivity::class.java))
             }
-            R.id.menu_sign_in_google -> {
-                // Google-кнопка живёт на экране входа (там же проверка Web Client ID)
-                accountLauncher.launch(Intent(this, LoginActivity::class.java))
-            }
-            R.id.menu_sign_in_huawei -> {
-                // Huawei ID — локальный вход вне Auth API, кнопка на экране входа
-                accountLauncher.launch(Intent(this, LoginActivity::class.java))
-            }
+            R.id.menu_logout -> logout()
+            R.id.menu_link_vk -> linkVk()
             R.id.menu_add_pet -> {
                 val intent = Intent(this, AddPetActivity::class.java)
                 startActivity(intent)
@@ -353,6 +391,28 @@ class MainActivity : AppCompatActivity(),
             R.id.menu_biometric_lock -> toggleBiometricLock()
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    /** Выход из аккаунта из меню ⋮: Auth API + локальная сессия VK. */
+    private fun logout() {
+        lifecycleScope.launch {
+            repo.logout()
+            if (VK.isLoggedIn()) {
+                runCatching { VK.logout() }
+            }
+            displayCachedProfile()
+            invalidateOptionsMenu()
+            Toast.makeText(this@MainActivity, R.string.not_signed_in, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** Привязка VK: локальная авторизация VK SDK (для публикаций на стену). */
+    private fun linkVk() {
+        if (VK.isLoggedIn()) {
+            Toast.makeText(this, R.string.auth_vk_already_linked, Toast.LENGTH_SHORT).show()
+            return
+        }
+        vkLinkLauncher.launch(arrayListOf(VKScope.EMAIL))
     }
 
     /** Циклически меняет тему: системная → светлая → тёмная. */
@@ -446,12 +506,12 @@ class MainActivity : AppCompatActivity(),
             securePrefs.getProfilePhoto()?.takeIf { it.isNotBlank() }?.let {
                 Picasso.get().load(it).placeholder(R.drawable.ic_person).into(binding.avatarIV)
             } ?: binding.avatarIV.setImageResource(R.drawable.ic_person)
-            binding.btnSignIn.text = getString(R.string.menu_vhod_title)
+            binding.btnSignIn.visibility = View.GONE
         } else {
             binding.nameTV.text = getString(R.string.defolt_тame)
             binding.tvUserSubtitle.setText(R.string.not_signed_in)
             binding.avatarIV.setImageResource(R.drawable.ic_person)
-            binding.btnSignIn.text = getString(R.string.menu_vhod_title)
+            binding.btnSignIn.visibility = View.VISIBLE
         }
     }
 

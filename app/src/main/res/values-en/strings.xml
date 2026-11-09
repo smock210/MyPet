@@ -310,6 +310,9 @@
     <string name="auth_profile_last_name">Last name</string>
     <string name="auth_change_password">Change password</string>
     <string name="auth_logout">Sign out</string>
+    <string name="auth_link_vk">Link VK</string>
+    <string name="auth_vk_linked">VK linked</string>
+    <string name="auth_vk_already_linked">VK is already linked</string>
     <string name="auth_password_changed">Password changed — please sign in again</string>
 
     <!-- Auth API: password reset (two steps) -->

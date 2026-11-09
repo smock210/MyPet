@@ -16,16 +16,16 @@
         android:title="Войти"
         app:showAsAction="never" />
     <item
-        android:id="@+id/menu_sign_in_google"
-        android:title="@string/google_sign_in"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_sign_in_huawei"
-        android:title="@string/huawei_sign_in"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/menu_registr"
         android:title="Зарегистрироваться"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_logout"
+        android:title="@string/auth_logout"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_link_vk"
+        android:title="@string/auth_link_vk"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_feeding_calc"
