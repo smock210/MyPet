@@ -36,7 +36,7 @@ class AddPetFragment : Fragment() {
         if (uri != null) {
             selectedPhotoUri = uri
             view?.findViewById<CircleImageView>(R.id.iv_pet_photo_preview)
-                ?.let { Picasso.get().load(uri).into(it) }
+                ?.let { Picasso.get().load(uri).fit().centerCrop().into(it) }
         }
     }
 
@@ -111,7 +111,8 @@ class AddPetFragment : Fragment() {
 
         selectedPhotoUri = pet.photoUri?.let(Uri::parse)
         ImageStorage.toLoadUri(pet.photoUri)?.let {
-            Picasso.get().load(it).into(view.findViewById<CircleImageView>(R.id.iv_pet_photo_preview))
+            Picasso.get().load(it).fit().centerCrop()
+                .into(view.findViewById<CircleImageView>(R.id.iv_pet_photo_preview))
         }
     }
 

@@ -45,6 +45,8 @@ class NewPetAdapt(
         } else {
             Picasso.get()
                 .load(photoUri)
+                .fit()
+                .centerCrop()
                 .placeholder(R.drawable.ic_pet_placeholder)
                 .error(R.drawable.ic_pet_placeholder)
                 .into(holder.smallImageView)

@@ -52,6 +52,7 @@
 | ViewPager2 | `1.1.0` (вкладки «Здоровье») |
 | Room | `2.6.1` |
 | Picasso | `2.8` |
+| ExifInterface | `1.3.7` (поворот фото при импорте перед пережатием) |
 | VK SDK | `4.1.0` (вход через VK, App ID 54841026 «Жизнь петомца», scope PHOTOS/EMAIL/PHONE) |
 | Auth API | Retrofit `2.11.0`, converter-gson `2.11.0`, OkHttp `4.12.0`, logging-interceptor `4.12.0` (URL — `BuildConfig.AUTH_BASE_URL`) |
 | Firebase Auth | отключён (выбран VK; класс FirebaseAuthHelper удалён) |

@@ -37,6 +37,36 @@ class PetViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         migrateLegacyPhotoUris()
+        repairPetAvatars()
+    }
+
+    /**
+     * Чинит записи, созданные до исправления 09.11.2026: первое фото
+     * добавлялось только в PetPhoto, а PetData.photoUri оставался пустым,
+     * поэтому большой аватар в карточке не отображался. При запуске
+     * подставляем основное фото из галереи.
+     */
+    private fun repairPetAvatars() {
+        viewModelScope.launch(Dispatchers.IO) {
+            dao.getAll().forEach { pet ->
+                val current = pet.photoUri
+                val localMissing = !current.isNullOrBlank() &&
+                    !current.startsWith("content://") &&
+                    !current.startsWith("http://") &&
+                    !current.startsWith("https://") &&
+                    !java.io.File(current).exists()
+                if (current.isNullOrBlank() || localMissing) {
+                    val photos = photoDao.getPhotosForPet(pet.id)
+                    val primary = photos.firstOrNull { it.isPrimary } ?: photos.firstOrNull()
+                    if (primary != null) {
+                        if (!primary.isPrimary) photoDao.update(primary.copy(isPrimary = true))
+                        dao.update(pet.copy(photoUri = primary.photoUri))
+                    } else if (localMissing) {
+                        dao.update(pet.copy(photoUri = null))
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -225,11 +255,32 @@ class PetViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val isFirst = photoDao.getPhotosForPet(petId).isEmpty()
             photoDao.insert(PetPhoto(petId = petId, photoUri = photoUri, isPrimary = isFirst))
+            // Первое фото сразу становится аватаром в карточке. Раньше
+            // PetData.photoUri не обновлялся, и большой аватар оставался
+            // пустым (баг от 09.11.2026).
+            if (isFirst) setPetAvatar(petId, photoUri)
         }
     }
 
     fun deletePhoto(photo: PetPhoto) {
-        viewModelScope.launch { photoDao.delete(photo) }
+        viewModelScope.launch {
+            photoDao.delete(photo)
+            ImageStorage.delete(getApplication(), photo.photoUri)
+
+            // Если удалили текущий аватар — показываем следующее фото
+            // или очищаем аватар, чтобы не остался битый путь.
+            val pet = dao.getById(photo.petId) ?: return@launch
+            if (pet.photoUri == photo.photoUri) {
+                val remaining = photoDao.getPhotosForPet(photo.petId)
+                val next = remaining.firstOrNull()
+                if (next != null) {
+                    if (!next.isPrimary) photoDao.update(next.copy(isPrimary = true))
+                    setPetAvatar(photo.petId, next.photoUri)
+                } else {
+                    setPetAvatar(photo.petId, null)
+                }
+            }
+        }
     }
 
     fun setPrimaryPhoto(photo: PetPhoto) {
@@ -238,6 +289,18 @@ class PetViewModel(application: Application) : AndroidViewModel(application) {
             for (p in others) {
                 photoDao.update(p.copy(isPrimary = (p.id == photo.id)))
             }
+            setPetAvatar(photo.petId, photo.photoUri)
+        }
+    }
+
+    /** Обновляет аватар питомца и, если карточка открыта, её состояние. */
+    private suspend fun setPetAvatar(petId: Long, photoUri: String?) {
+        val pet = dao.getById(petId) ?: return
+        if (pet.photoUri == photoUri) return
+        val updated = pet.copy(photoUri = photoUri)
+        dao.update(updated)
+        if (_editedPet.value?.id == petId) {
+            _editedPet.value = updated
         }
     }
 

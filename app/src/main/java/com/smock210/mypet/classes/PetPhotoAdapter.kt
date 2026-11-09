@@ -29,6 +29,8 @@ class PetPhotoAdapter(
         val item = getItem(position)
         Picasso.get()
             .load(ImageStorage.toLoadUri(item.photoUri))
+            .fit()
+            .centerCrop()
             .placeholder(R.drawable.ic_pet_placeholder_centered)
             .error(R.drawable.ic_pet_placeholder_centered)
             .into(holder.image)

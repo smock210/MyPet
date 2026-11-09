@@ -257,10 +257,8 @@ class MainDetailActivity : AppCompatActivity() {
                 Toast.makeText(this, R.string.photo_deleted, Toast.LENGTH_SHORT).show()
             },
             onSetPrimary = { photo ->
+                // ViewModel сам обновит PetData.photoUri и состояние карточки
                 viewModel.setPrimaryPhoto(photo)
-                viewModel.editedPet.value?.let { pet ->
-                    viewModel.updatePet(pet.copy(photoUri = photo.photoUri))
-                }
                 Toast.makeText(this, R.string.photo_is_primary, Toast.LENGTH_SHORT).show()
             }
         )
@@ -330,6 +328,8 @@ class MainDetailActivity : AppCompatActivity() {
         if (loadUri != null) {
             Picasso.get()
                 .load(loadUri)
+                .fit()
+                .centerCrop()
                 .placeholder(R.drawable.ic_pet_placeholder)
                 .error(R.drawable.ic_pet_placeholder)
                 .into(binding.ivPetAvatar)
